@@ -1,3 +1,3 @@
--# Shortest Path Algorithms
--# To run in linux terminal
--# g++ -o main main.cpp network.cpp kspath.cpp basic.cpp
+# Shortest Path Algorithms
+# To run in linux terminal
+# g++ -o main main.cpp network.cpp kspath.cpp basic.cpp
