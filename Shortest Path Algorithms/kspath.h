@@ -3,5 +3,9 @@ using namespace std;
 class kspath
 {
 public:
-	void kshortestpath(int, int, int**, double*, int, int);
+	int *spathmat;
+	int *arcindex;
+	int numarcs;
+	double minimum_dist;
+	void bidijkstra(int , int, int **, double *, int , int );
 };

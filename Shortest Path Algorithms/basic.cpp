@@ -173,3 +173,21 @@ double basic::minarrvalue(double *arr, int n)
   else
     return arr[0];
 }
+int basic::same_mat(int *a, int *b, int n,int m)
+{
+    int returnval = 1;
+    if(m!=n)
+        returnval = 0;
+    else
+        {
+            for(int i=0;i<n;i++)
+                {
+                    if(a[i]!=b[i])
+                    {
+                        returnval = 0;
+                        break;
+                    }
+                }
+        }
+    return returnval;
+}

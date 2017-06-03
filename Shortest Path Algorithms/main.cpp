@@ -2,11 +2,14 @@
 #include "basic.h"
 #include "network.h"
 #include "spath.h"
+#include "kspath.h"
 using namespace std;
 int main()
 {
+	int k;
 	network net;
-	net.inputdata();
-	net.outputdata();
+	net.maninputdata();
+	//net.outputdata();
+	net.otdata();
 	return 0;
 }

@@ -14,4 +14,5 @@ public:
 	void merge(int*, int, int, int);
 	void mergeSort(int*, int, int);
 	double minarrvalue(double*, int);
+	int same_mat(int*,int*,int,int);
 };

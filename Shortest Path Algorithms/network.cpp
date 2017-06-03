@@ -7,14 +7,83 @@
 #include <string>
 #include "basic.h"
 #include "spath.h"
-#include "kspath.h"
 #include "network.h"
+#include "kspath.h"
 void network::otdata()
 {
-
+	int i,j;
+	double *distmatrix;
+	distmatrix = new double[nodes];
+	arcmatrixcopy[0] = new int[arcs];//To store the origin
+	arcmatrixcopy[1] = new int[arcs];//To store the destination
+	weightmatcopy = new double[arcs];//To store the weights
+	arcmatrixcopy[3] = new int[arcs];//To store accessibility ( in case of bidirectional dijkstra it is for forward direction)
+	for(i=0;i<arcs;i++)
+	{
+		arcmatrixcopy[0][i] = arcmatrix[0][i];
+		arcmatrixcopy[1][i] = arcmatrix[1][i];
+		weightmatcopy[i] = weightmat[i];
+		arcmatrixcopy[3][i] = arcmatrix[3][i];
+	}
+	int **pathmatrin = new int*[nodes];
+	for(i=0;i<nodes;i++)
+	{
+		pathmatrin[i] = new int[nodes];
+	}
+	int xstar = nodes-1;
+	kspath::bidijkstra(nodes, arcs, arcmatrix,weightmat, 0, xstar);
+	distmatrix[0] = kspath::minimum_dist;
+	temp = new int[nodes];
+	temp[0] = kspath::numarcs;
+	for(i=0;i<=temp[0];i++)
+		pathmatrin[0][i] = kspath::spathmat[i];
+	cout<<distmatrix[0]<<' ';
+	for(i=0;i<=temp[0];i++)
+		cout<<pathmatrin[0][i]<<' ';
+	cout<<endl;
+	cout<<"no. of arcs: "<<temp[0]<<endl;
+	tempindex = new int[kspath::numarcs];
+	for(i=0;i<kspath::numarcs;i++)
+	{
+		tempindex[i] = kspath::arcindex[i];
+	}
+	int iter;
+	int it = 0;
+	for(iter=0;iter<temp[0];iter++)
+	{
+		kspath::numarcs = 0;
+		for(j=0;j<arcs;j++)
+		{
+			arcmatrixcopy[0][j] = arcmatrix[0][j];
+			arcmatrixcopy[1][j] = arcmatrix[1][j];
+			weightmatcopy[j] = weightmat[j];
+			arcmatrixcopy[3][j] = arcmatrix[3][j];
+		}
+		weightmatcopy[tempindex[iter]] = 32767;
+		kspath::bidijkstra(nodes,arcs,arcmatrix,weightmatcopy,0,xstar);
+		temp[it+1] = kspath::numarcs;
+		distmatrix[it+1] = kspath::minimum_dist;
+		for(j=0;j<=kspath::numarcs;j++)
+			pathmatrin[it+1][j] = kspath::spathmat[j];
+		for(j=0;j<=it;j++)
+		{
+			if((basic::same_mat(pathmatrin[it+1],pathmatrin[j],temp[it+1]+1,temp[j]+1))||(distmatrix[it+1]>32000))
+				it--;
+		}
+		it++;
+	}
+	for(i=1;i<=it;i++)
+	{
+		cout<<distmatrix[i]<<' ';
+		for(j=0;j<=temp[i];j++)
+			cout<<pathmatrin[i][j]<<' ';
+		cout<<endl;
+		delete[] pathmatrin[i];
+	}
 }
 void network::outputdata()
 {
+	int i,j;
 	srand(time(NULL));
 	int origin_mat[25];
 	int destination_mat[25];
@@ -84,6 +153,7 @@ void network::outputdata()
 }
 void network::inputdata()
 {
+	int i,j;
 	cout<<"Enter the Network to be tested on (Type the number before the network):"<<endl<<"1: Anaheim\n"<<"2: Austin\n"<<"3: Barcelona\n"<<"4: Berlin-Center\n"<<"5: Berlin-Friedrichshain	\n"<<"6: Berlin-Mitte-Center	\n"<<"7: Berlin-Mitte-Prenzlauerberg-Friedrichshain-Center	\n"<<"8: Berlin-Prenzlauerberg-Center	\n"<<"9: Berlin-Tiergarten	\n"<<"10: Birmingham-England	\n"<<"11: Braess-Example	\n"<<"12: Chicago-Sketch	\n"<<"13: Eastern-Massachusetts	\n"<<"14: GoldCoast\n"<<"15: Hessen-Asymmetric	\n"<<"16: Philadelphia\n"<<"17: SiouxFalls	\n"<<"18: Sydney	\n"<<"19: Terrassa-Asymmetric	\n"<<"20: Winnipeg	\n"<<"21: Winnipeg-Asymmetric	\n"<<"22: chicago-regional\n";
 	cin >> decider;
 	switch(decider)
@@ -184,6 +254,7 @@ void network::inputdata()
 }
 void network::maninputdata()
 {
+	int i,j;
 	cout<<"Enter the number of nodes"<<endl;
 	cin>>nodes;
 	cout<<"Enter the number of arcs"<<endl;
@@ -203,6 +274,7 @@ void network::maninputdata()
 }
 void network::manoutputdata()
 {
+	int i,j;
 	srand(time(NULL));
 	int origin_mat[25];
 	int destination_mat[25];
@@ -213,8 +285,10 @@ void network::manoutputdata()
 	primstime = new double[iterations];
 	for(i=0;i<iterations;i++)
 	{
-		origin_mat[i]=rand()%nodes;
-		destination_mat[i]=rand()%nodes;
+		//origin_mat[i]=rand()%nodes;
+		//destination_mat[i]=rand()%nodes;
+		origin_mat[i]=0;
+		destination_mat[i]=nodes-1;
 	}
 	double x[25], y[25], z[25];
 	for (i = 0; i < iterations; i++)
