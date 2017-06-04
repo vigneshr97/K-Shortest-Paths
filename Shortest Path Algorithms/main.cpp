@@ -8,7 +8,7 @@ int main()
 {
 	int k;
 	network net;
-	net.maninputdata();
+	net.inputdata();
 	//net.outputdata();
 	net.otdata();
 	return 0;
