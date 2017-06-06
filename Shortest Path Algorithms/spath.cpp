@@ -9,6 +9,7 @@
 #include <string>
 #include "spath.h"
 using namespace std;
+#define min(a,b) a<b?a:b
 double spath::bidijkstra(int nodes, int arcs, int **arcmatrix, double *weightmat, int Origin, int Destination)
 {
 	int iterations;
@@ -415,7 +416,8 @@ double spath::reversedijkstra(int nodes, int arcs, int **arcmatrix,double *weigh
 }
 void spath::prims(int nodes, int arcs, int **arcmatrix, double* weightmat, int Origin, int Destination)
 {
-	int i, j, s, k, minindex, minvalue;
+	int i, j, s, k, minindex;
+	double minvalue;
 	int *duplicate[4];
 	int *output[2];
 	double *outputd[2];

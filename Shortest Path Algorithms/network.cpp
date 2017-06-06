@@ -5,6 +5,8 @@
 #include <math.h>
 #include <string.h>
 #include <string>
+#include <ctime>
+#include <time.h>
 #include "basic.h"
 #include "spath.h"
 #include "network.h"
