@@ -18,9 +18,7 @@ public:
 	int *arcmatrix[4];
 	int *arcmatrixcopy[4];
 	int arcs_done = 0;
-	int *distmatrix;
-	int *temp;
-	int *tempindex;
+	int num_operating = 1;
 	string tntp;
 	void inputdata();
 	void maninputdata();

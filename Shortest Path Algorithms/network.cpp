@@ -11,9 +11,53 @@
 #include "spath.h"
 #include "network.h"
 #include "kspath.h"
+/*void network::kotdata()
+{
+	int i,j,k,l;
+	double *distmatrix;
+	int *sizepathmatrix;//to store number of arcs in a path
+	int **pathmatrin = new int*[nodes];
+	distmatrix = new double[nodes];
+	arcmatrixcopy[0] = new int[arcs];//To store the origin
+	arcmatrixcopy[1] = new int[arcs];//To store the destination
+	weightmatcopy = new double[arcs];//To store the weights
+	arcmatrixcopy[3] = new int[arcs];//To store accessibility ( in case of bidirectional dijkstra it is for forward direction)
+	for(i=0;i<nodes;i++)
+	{
+		pathmatrin[i] = new int[nodes];
+	}
+	int xstar = nodes-1;
+	kspath::bidijkstra(nodes, arcs, arcmatrix,weightmat, 0, xstar);
+	distmatrix[0] = kspath::minimum_dist;
+	sizepathmatrix[0] = kspath::numarcs;
+	int **temp = new int*[1];
+	int **tempindex = new int*[1];
+	temp = new int[nodes];
+	temp[0] = kspath::numarcs;
+	for(i=0;i<=temp[0];i++)
+		pathmatrin[0][i] = kspath::spathmat[i];
+	int sizedupmat = 1;
+
+}
+void network::singleiter(int pathmatrix, double distmatrix, int num_arcs)
+{
+
+	int *temp;
+	int *tempindex;
+	int i,j,k;
+	double *distmatrix;
+	distmatrix = new double[nodes];
+	arcmatrixcopy[0] = new int[arcs];//To store the origin
+	arcmatrixcopy[1] = new int[arcs];//To store the destination
+	weightmatcopy = new double[arcs];//To store the weights
+	arcmatrixcopy[3] = new int[arcs];//To store accessibility ( in case of bidirectional dijkstra it is for forward direction)
+
+}*/
 void network::otdata()
 {
-	int i,j;
+	int *temp;
+	int *tempindex;
+	int i,j,k;
 	double *distmatrix;
 	distmatrix = new double[nodes];
 	arcmatrixcopy[0] = new int[arcs];//To store the origin
@@ -28,18 +72,15 @@ void network::otdata()
 		arcmatrixcopy[3][i] = arcmatrix[3][i];
 	}
 	int **pathmatrin = new int*[nodes];
-	for(i=0;i<nodes;i++)
-	{
-		pathmatrin[i] = new int[nodes];
-	}
 	int xstar = nodes-1;
+	pathmatrin[0] = new int[nodes];
 	kspath::bidijkstra(nodes, arcs, arcmatrix,weightmat, 0, xstar);
 	distmatrix[0] = kspath::minimum_dist;
 	temp = new int[nodes];
 	temp[0] = kspath::numarcs;
 	for(i=0;i<=temp[0];i++)
 		pathmatrin[0][i] = kspath::spathmat[i];
-	cout<<distmatrix[0]<<' ';
+	cout<<"Distance: "<<distmatrix[0]<<endl<<"Path: ";
 	for(i=0;i<=temp[0];i++)
 		cout<<pathmatrin[0][i]<<' ';
 	cout<<endl;
@@ -51,8 +92,12 @@ void network::otdata()
 	}
 	int iter;
 	int it = 0;
+	double initdist = 0;
 	for(iter=0;iter<temp[0];iter++)
 	{
+		pathmatrin[it+1] = new int[nodes];
+		for(j=0;j<iter;j++)
+			pathmatrin[it+1][j] = pathmatrin[0][j];
 		kspath::numarcs = 0;
 		for(j=0;j<arcs;j++)
 		{
@@ -62,21 +107,97 @@ void network::otdata()
 			arcmatrixcopy[3][j] = arcmatrix[3][j];
 		}
 		weightmatcopy[tempindex[iter]] = 32767;
-		kspath::bidijkstra(nodes,arcs,arcmatrix,weightmatcopy,0,xstar);
-		temp[it+1] = kspath::numarcs;
-		distmatrix[it+1] = kspath::minimum_dist;
-		for(j=0;j<=kspath::numarcs;j++)
-			pathmatrin[it+1][j] = kspath::spathmat[j];
+		for(j=0;j<arcs;j++)
+		{
+			for(k=0;k<iter;k++)
+			{
+				if(pathmatrin[0][k]==arcmatrix[1][j])
+					weightmatcopy[j] = 32767;
+			}
+		}
+		/*for(j=0;j<arcs;j++)
+		{
+			cout<<arcmatrix[0][j]<<' '<<arcmatrix[1][j]<<' '<<weightmatcopy[j]<<endl;
+		}*/
+		kspath::bidijkstra(nodes,arcs,arcmatrix,weightmatcopy,arcmatrix[0][tempindex[iter]],xstar);
+		temp[it+1] = kspath::numarcs+iter;
+		//cout<<"iter:"<<iter<<" min_dist:"<<kspath::minimum_dist<<" init: "<<initdist<<endl;
+		distmatrix[it+1] = kspath::minimum_dist+initdist;
+		for(j=iter;j<=kspath::numarcs+iter;j++)
+			pathmatrin[it+1][j] = kspath::spathmat[j-iter];
 		for(j=0;j<=it;j++)
 		{
 			if((basic::same_mat(pathmatrin[it+1],pathmatrin[j],temp[it+1]+1,temp[j]+1))||(distmatrix[it+1]>32000))
-				it--;
+				{
+					delete[] pathmatrin[it+1];
+					it--;
+					break;
+				}
 		}
+		initdist+=weightmat[tempindex[iter]];
 		it++;
 	}
+	int fd = it;
+	cout<<"No. obtained in forward: "<<fd<<endl;
+	initdist = distmatrix[0];
+	for(iter=0;iter<temp[0];iter++)
+	{
+		pathmatrin[it+1] = new int[nodes];
+		//cout<<"code worked at iter= "<<iter<<" and it = "<<it<<endl;
+		/*for(j=0;j<iter;j++)
+			pathmatrin[it+1][j] = pathmatrin[0][j];*/
+		initdist=initdist-weightmat[tempindex[iter]];
+		kspath::numarcs = 0;
+		for(j=0;j<arcs;j++)
+		{
+			arcmatrixcopy[0][j] = arcmatrix[0][j];
+			arcmatrixcopy[1][j] = arcmatrix[1][j];
+			weightmatcopy[j] = weightmat[j];
+			arcmatrixcopy[3][j] = arcmatrix[3][j];
+		}
+		weightmatcopy[tempindex[iter]] = 32767;
+		for(j=0;j<arcs;j++)
+		{
+			for(k=iter+1;k<=temp[0];k++)
+			{
+				if(pathmatrin[0][k]==arcmatrix[0][j])
+					weightmatcopy[j] = 32767;
+			}
+		}
+		//cout<<"code worked again at iter= "<<iter<<" and it = "<<it<<endl;
+		/*for(j=0;j<arcs;j++)
+		{
+			cout<<arcmatrix[0][j]<<' '<<arcmatrix[1][j]<<' '<<weightmatcopy[j]<<endl;
+		}*/
+		kspath::bidijkstra(nodes,arcs,arcmatrix,weightmatcopy,0,arcmatrix[1][tempindex[iter]]);
+		//cout<<"bidijkstra over"<<endl;
+		temp[it+1] = kspath::numarcs+temp[0]-iter-1;
+		distmatrix[it+1] = kspath::minimum_dist+initdist;
+		if(distmatrix[it+1]>32000)
+		{
+			//cout<<"code worked again again at iter= "<<iter<<" and it = "<<it<<endl;
+			continue;
+		}
+		for(j=0;j<=kspath::numarcs;j++)
+			pathmatrin[it+1][j] = kspath::spathmat[j];
+		for(j=1;j<temp[0]-iter;j++)
+			pathmatrin[it+1][kspath::numarcs+j] = pathmatrin[0][j+iter+1];
+		for(j=0;j<=it;j++)
+		{
+			if(basic::same_mat(pathmatrin[it+1],pathmatrin[j],temp[it+1]+1,temp[j]+1))
+				{
+					delete[] pathmatrin[it+1];
+					it--;
+					break;
+				}
+		}
+		//cout<<"code worked again again at iter= "<<iter<<" and it = "<<it<<endl;
+		it++;
+	}
+	cout<<"No. obtained in backward: "<<it-fd<<endl;
 	for(i=1;i<=it;i++)
 	{
-		cout<<distmatrix[i]<<' ';
+		cout<<"Distance: "<<distmatrix[i]<<endl<<"Path: ";
 		for(j=0;j<=temp[i];j++)
 			cout<<pathmatrin[i][j]<<' ';
 		cout<<endl;

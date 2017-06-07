@@ -11,13 +11,19 @@
 using namespace std;
 void kspath::bidijkstra(int nodes, int arcs, int **arcmatrix, double *weightmat, int Origin, int Destination)
 {
+	//cout<<"entered bidijkstra"<<endl;
 	spathmat = new int [nodes];
 	arcindex = new int [nodes];
-	int s,minindex,i,j,k,l,*duplicate[5],*revarcmatrix[4],*visited[2],breakingvar,mindistindex,sf,sb;
+	//cout<<"sizeof(spathmat): "<<sizeof(*spathmat)<<endl;
+	int s,minindex,i,j,k,l,*duplicate[5],*visited[2],breakingvar,mindistindex,sf,sb;
 	double minvalue,*dupweightmat,*dupupdweightmat,*distancef,*distanceb,*distancethrough,mindistance;
 	breakingvar = 0;
+	int *revarcmatrix[4];
+	//cout<<"CP1 "<<sizeof(revarcmatrix)/sizeof(int)<<endl;
 	revarcmatrix[0] = new int [arcs];
+	//cout<<"CP2"<<endl;
 	revarcmatrix[1] = new int [arcs];
+	//cout<<"CP3"<<endl;
 	revarcmatrix[3] = new int [arcs];
 	int **fpathmat = new int*[nodes];
 	int **bpathmat = new int*[nodes];
@@ -26,12 +32,19 @@ void kspath::bidijkstra(int nodes, int arcs, int **arcmatrix, double *weightmat,
 	distancethrough = new double[nodes];
 	int **pathmat = new int*[nodes];
 	int *sizemat = new int[nodes];
-	for(i=0;i<nodes;i++)
+	fpathmat[Origin] = new int [1];
+	bpathmat[Destination] = new int [1];
+	distancef = new double[nodes];
+	distanceb = new double[nodes];
+	visited[0] = new int[nodes];//forward
+	visited[1] = new int[nodes];//backward
+	//cout<<"mem all over"<<endl;
+/*	for(i=0;i<nodes;i++)
 	{
 		pathmat[i] = new int[nodes];
 		fpathmat[i] = new int[nodes];
 		bpathmat[i] = new int[nodes];
-	}
+	}*/
 	for(i=0;i<arcs;i++)
 	{
 		revarcmatrix[0][i] = arcmatrix[1][i];
@@ -50,22 +63,19 @@ void kspath::bidijkstra(int nodes, int arcs, int **arcmatrix, double *weightmat,
 		fsizemat[i] = 0;
 		bsizemat[i] = 0;
 	}
-	for(i=0;i<nodes;i++)
+	/*for(i=0;i<nodes;i++)
 	{
 		for(j=0;j<nodes;j++)
 		{
 			fpathmat[i][j] = -1;
 			bpathmat[i][j] = -1;
 		}
-	}
+	}*/
+	
 	fpathmat[Origin][0] = Origin;
 	fsizemat[Origin] = 1;
 	bpathmat[Destination][0] = Destination;
 	bsizemat[Destination] = 1;
-	distancef = new double[nodes];
-	distanceb = new double[nodes];
-	visited[0] = new int[nodes];//forward
-	visited[1] = new int[nodes];//backward
 	for (i = 0; i < nodes; i++)
 	{
 		visited[0][i] = 0;
@@ -223,19 +233,14 @@ void kspath::bidijkstra(int nodes, int arcs, int **arcmatrix, double *weightmat,
 	}
 	sf = 0;
 	sb = 0;
-	int *visitedf, *visitedb;
-	visitedf = new int[nodes];
-	visitedb = new int[nodes];
 	for (i = 0; i < nodes; i++)
 	{
 		if (visited[0][i])
 		{
-			visitedf[sf] = i;
 			sf++;
 		}
 		if (visited[1][i])
 		{
-			visitedf[sb] = i;
 			sb++;
 		}
 	}
@@ -249,13 +254,13 @@ void kspath::bidijkstra(int nodes, int arcs, int **arcmatrix, double *weightmat,
 	{
 		sizemat[i] = 0;
 	}
-	for(i=0;i<nodes;i++)
+	/*for(i=0;i<nodes;i++)
 	{
 		for(j=0;j<nodes;j++)
 		{
 			pathmat[i][j] = -1;
 		}
-	}
+	}*/
 	sizemat[l] = fsizemat[l]+bsizemat[l]-1;
 	pathmat[l] = new int[sizemat[l]];
 	for(i=0;i<fsizemat[l];i++)
@@ -300,6 +305,12 @@ void kspath::bidijkstra(int nodes, int arcs, int **arcmatrix, double *weightmat,
 	//cout<<"Shortest path is ";
 	for(i=0;i<sizemat[mindistindex];i++)
 		spathmat[i]=pathmat[mindistindex][i];
+	//delete[] revarcmatrix;
+	/*
+	delete[] revarcmatrix[0];
+	delete[] revarcmatrix[1];
+	delete[] revarcmatrix[3];
+	*/
 	delete[] fpathmat;
 	delete[] bpathmat;
 	delete[] pathmat;
