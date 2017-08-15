@@ -17,5 +17,5 @@ public:
 	string tntp;
 	void inputdata();
 	void maninputdata();
-	void otdata();
+	void outputdata();
 };

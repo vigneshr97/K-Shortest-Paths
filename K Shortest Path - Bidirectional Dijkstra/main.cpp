@@ -9,12 +9,10 @@ int main()
 	network net;
 	//net.maninputdata();
 	net.inputdata();
-	net.otdata();
+	net.outputdata();
 	return 0;
 }
 /*
-uncomment net.output data and comment net.otdata to see the computational time comparisons of SP algorithms
-uncomment net.otdata and comment net.outputdata to see the successive shortest paths
 give the following input by rewriting net.inputdata(); to net.maninputdata();
 #1
 Nodes:7 Arcs:11
@@ -31,18 +29,19 @@ Nodes:7 Arcs:11
 6 7 20
 
 #2
-Nodes:9 Arcs:13
-1 2 5
-1 3 10
-1 4 15
-3 4 20
-3 5 5
-2 5 15
-2 6 10
-4 6 10
-6 8 15
-5 8 10
-5 7 20
-7 9 10
-8 9 5
+Nodes:9 Arcs:14
+1 2 4
+1 3 8
+2 4 8
+2 3 11
+3 5 7
+3 6 1
+4 5 2
+4 7 7
+4 8 4
+5 6 6
+6 8 2
+7 8 14
+7 9 9
+8 9 10
 */

@@ -8,10 +8,11 @@
 #include <ctime>
 #include <time.h>
 #include <vector>
+#include <algorithm>
 #include "basic.h"
 #include "network.h"
 #include "kspath.h"
-void network::otdata()
+void network::outputdata()
 {
 	int Origin, Destination, K;
 	cout<<"Enter the Origin: ";
@@ -22,13 +23,66 @@ void network::otdata()
 	Destination--;
 	cout<<"Enter the number of paths required: ";
 	cin>>K;
-	PATHMAT pathmatrix = kspath::bidijkstra(graph, Origin, Destination, K);
-	int size = pathmatrix.pathmat.size();
-	for (int i = 0; i < size; ++i)
+	srand(time(NULL));
+	double t1 = clock();
+	SPATHMAT pathmatrix = kspath::bidijkstra(graph, Origin, Destination, K);
+	double t2 = clock();
+	int psize = pathmatrix.pathmat.size();
+	for (int i = 0; i < psize; ++i)
 	{
 		cout<<"Weight: "<<pathmatrix.pathmat[i].weight<<endl;
 		int pathsize = pathmatrix.pathmat[i].pathlist.size();
 		cout<<"PATH: ";
+		for (int j = 0; j < pathsize-1; ++j)
+		{
+			cout<<pathmatrix.pathmat[i].pathlist[j]<<"-->";
+		}
+		cout<<pathmatrix.pathmat[i].pathlist[pathsize-1];
+		cout<<endl;
+	}
+	cout<<"TIME CONSUMED:"<<(t2 - t1) / CLOCKS_PER_SEC<<endl<<endl<<endl<<endl;
+	double t3 = clock();
+	YENPATHMAT yenpathmatrix = kspath::yen(graph, Origin, Destination, K);
+	double t4 = clock();
+	int ysize = yenpathmatrix.pathmat.size();
+	for (int i = 0; i < ysize; ++i)
+	{
+		cout<<"Weight: "<<yenpathmatrix.pathmat[i].weight<<endl;
+		int pathsize = yenpathmatrix.pathmat[i].pathlist.size();
+		cout<<"PATH: ";
+		for (int j = 0; j < pathsize-1; ++j)
+		{
+			cout<<yenpathmatrix.pathmat[i].pathlist[j]<<"-->";
+		}
+		cout<<yenpathmatrix.pathmat[i].pathlist[pathsize-1];
+		cout<<endl;
+	}
+	cout<<"TIME CONSUMED:"<<(t4 - t3) / CLOCKS_PER_SEC<<endl<<endl<<endl<<endl;
+	for (int i = 0; i < ysize; ++i)
+	{
+		cout<<"Bidijkstra Weight: "<<pathmatrix.pathmat[i].weight<<" Yen's Weight: "<<yenpathmatrix.pathmat[i].weight<<endl;
+		int pathsize = pathmatrix.pathmat[i].pathlist.size();
+		cout<<"BPATH: ";
+		for (int j = 0; j < pathsize-1; ++j)
+		{
+			cout<<pathmatrix.pathmat[i].pathlist[j]<<"-->";
+		}
+		cout<<pathmatrix.pathmat[i].pathlist[pathsize-1];
+		cout<<endl;
+		pathsize = yenpathmatrix.pathmat[i].pathlist.size();
+		cout<<"YPATH: ";
+		for (int j = 0; j < pathsize-1; ++j)
+		{
+			cout<<yenpathmatrix.pathmat[i].pathlist[j]<<"-->";
+		}
+		cout<<yenpathmatrix.pathmat[i].pathlist[pathsize-1];
+		cout<<endl;
+	}
+	for (int i = ysize; i < psize; ++i)
+	{
+		cout<<"Bidijkstra Weight: "<<pathmatrix.pathmat[i].weight<<endl;
+		int pathsize = pathmatrix.pathmat[i].pathlist.size();
+		cout<<"BPATH: ";
 		for (int j = 0; j < pathsize-1; ++j)
 		{
 			cout<<pathmatrix.pathmat[i].pathlist[j]<<"-->";
@@ -115,50 +169,279 @@ void network::inputdata()
 		cout<<"invalid";
 	}
 	ifstream in(tntp);
-	if(!in) {
+	ofstream outputFile;
+	string filename = "exampleOutput.csv";
+	if(!in) 
+	{
 	  cout << "Cannot open"<<tntp<< "file.\n";
 	}
 	in >> dummyc[0]>> dummyc[1]>> dummyc[2] >> dummyf;
 	in >> dummyc[0]>> dummyc[1]>> dummyc[2] >> graph.nodes;
 	in >> dummyc[0]>> dummyc[1]>> dummyc[2] >> dummyf;
 	in >> dummyc[0]>> dummyc[1]>> dummyc[2] >> graph.arcs;
+	graph.fstar = new int [graph.nodes + 1];
+	graph.rstar = new int [graph.nodes + 1];
+	//for (int i = 0; i <= graph.nodes; ++i)
+	//{
+	//	graph.fstar.push_back(-1);
+	//	graph.rstar.push_back(-1);
+	//}
 	for(i=0;i<3;i++)
 	in>>dummyc[i];
-
-	graph.arcmatrix[0] = new int[graph.arcs];//To store the origin
-	graph.arcmatrix[1] = new int[graph.arcs];//To store the destination
-	graph.weightmat = new double[graph.arcs];//To store the weights
-	graph.arcmatrix[2] = new int[graph.arcs];//To store accessibility ( in case of bidirectional dijkstra it is for forward direction)
-	graph.revarcmatrix = new int[graph.arcs];
 	cout << "Nodes: "<<graph.nodes<<'\n'<<"Arcs: "<<graph.arcs<<'\n';
+	outputFile.open(filename);
+	outputFile << "A" << "," << "B" <<","<< "Weight" <<endl;
 	for (i = 0; i < graph.arcs; i++)
 	{
-	  in>>graph.arcmatrix[0][i]>>graph.arcmatrix[1][i]>>dummyf>>graph.weightmat[i]>>dummyfl[0]>>dummyfl[1]>>dummyfl[2]>>dummyfl[3]>>dummyfl[4]>>dummyfl[5]>>dummyc[1];
+		graph.fstarmatrix.push_back(ARC());
+		graph.rstarmatrix.push_back(ARC());
+		in>>graph.fstarmatrix[i].head>>graph.fstarmatrix[i].tail>>dummyf>>graph.fstarmatrix[i].weight>>dummyfl[0]>>dummyfl[1]>>dummyfl[2]>>dummyfl[3]>>dummyfl[4]>>dummyfl[5]>>dummyc[1];
+		outputFile<<graph.fstarmatrix[i].head<<","<<graph.fstarmatrix[i].tail<<","<<graph.fstarmatrix[i].weight<<endl;
+		graph.fstarmatrix[i].head--;
+		graph.fstarmatrix[i].tail--;
+		graph.rstarmatrix[i].head = graph.fstarmatrix[i].head;
+		graph.rstarmatrix[i].tail = graph.fstarmatrix[i].tail;
+		graph.rstarmatrix[i].weight = graph.fstarmatrix[i].weight;
 	}
-	for(i=0;i<graph.arcs;i++)
+	sort(graph.fstarmatrix.begin(), graph.fstarmatrix.end(), forwardstar());
+	sort(graph.rstarmatrix.begin(), graph.rstarmatrix.end(), reversestar());
+	if (graph.fstarmatrix[0].head!=0)
 	{
-		graph.arcmatrix[0][i]--;
-		graph.arcmatrix[1][i]--;
+		for (int i = 0; i < graph.fstarmatrix[0].head; ++i)
+		{
+			graph.fstar[i] = 0;
+		}
 	}
+	if (graph.rstarmatrix[0].tail!=0)
+	{
+		for (int i = 0; i < graph.rstarmatrix[0].tail; ++i)
+		{
+			graph.rstar[i] = 0;
+		}
+	}
+	int x = 0;
+	while(x < graph.arcs)
+	{
+		int i;
+		int y = graph.fstarmatrix[x].head;
+		graph.fstar[y] = x;
+		for (i = x; i < graph.arcs; ++i)
+		{
+			if (graph.fstarmatrix[i].head==y)
+			{
+				continue;
+			}
+			else
+			{
+				if (graph.fstarmatrix[i].head == y+1)
+				{
+					x = i;
+					break;
+				}
+				else
+				{
+					for (int j = y+1; j < graph.fstarmatrix[i].head; ++j)
+					{
+						graph.fstar[j] = i;
+					}
+					x = i;
+					break;
+				}
+			}
+		}
+		x = i;
+	}
+	for (int i = graph.fstarmatrix[ graph.arcs - 1 ].head + 1; i <= graph.nodes; ++i)
+	{
+		graph.fstar[i] = graph.arcs;
+	}
+	x = 0;
+	while(x < graph.arcs)
+	{
+		int i;
+		int y = graph.rstarmatrix[x].tail;
+		graph.rstar[y] = x;
+		for (i = x; i < graph.arcs; ++i)
+		{
+			if (graph.rstarmatrix[i].tail==y)
+			{
+				continue;
+			}
+			else
+			{
+				if (graph.rstarmatrix[i].tail == y+1)
+				{
+					x = i;
+					break;
+				}
+				else
+				{
+					for (int j = y+1; j < graph.rstarmatrix[i].tail; ++j)
+					{
+						graph.rstar[j] = i;
+					}
+					x = i;
+					break;
+				}
+			}
+		}
+		x = i;
+	}
+	for (int i = graph.rstarmatrix[ graph.arcs - 1 ].tail + 1; i <= graph.nodes; ++i)
+	{
+		graph.rstar[i] = graph.arcs;
+	}
+	graph.fstar[graph.nodes] = graph.arcs;
+	graph.rstar[graph.nodes] = graph.arcs;
+	/*cout<<"FSTARMATRIX:"<<endl;
+	for (int i = 0; i < graph.arcs; ++i)
+	{
+		cout<<i<<' '<<graph.fstarmatrix[i].head<<' '<<graph.fstarmatrix[i].tail<<' '<<graph.fstarmatrix[i].weight<<endl;
+	}
+	cout<<"FSTAR:"<<endl;
+	for (int i = 0; i <= graph.nodes; ++i)
+	{
+		cout<<i<<' '<<graph.fstar[i]<<endl;
+	}
+	cout<<"RSTARMATRIX:"<<endl;
+	for (int i = 0; i < graph.arcs; ++i)
+	{
+		cout<<i<<' '<<graph.rstarmatrix[i].head<<' '<<graph.rstarmatrix[i].tail<<' '<<graph.rstarmatrix[i].weight<<endl;
+	}
+	cout<<"RSTAR:"<<endl;
+	for (int i = 0; i <= graph.nodes; ++i)
+	{
+		cout<<i<<' '<<graph.rstar[i]<<endl;
+	}*/
 }
 void network::maninputdata()
 {
-	int i,j;
 	cout<<"Enter the number of nodes"<<endl;
 	cin>>graph.nodes;
 	cout<<"Enter the number of arcs"<<endl;
 	cin>>graph.arcs;
-	graph.arcmatrix[0] = new int[graph.arcs];//To store the origin
-	graph.arcmatrix[1] = new int[graph.arcs];//To store the destination
-	graph.weightmat = new double[graph.arcs];//To store the weights
-	graph.arcmatrix[2] = new int[graph.arcs];//To store accessibility ( in case of bidirectional dijkstra it is for forward direction)
-	graph.revarcmatrix = new int[graph.arcs];
-	cout << "Nodes: 1 to "<<graph.nodes<<"\nEnter thearcs (maximum value of weight:32766)\nFormat : origin destination weight\nE.g: 1 2 3 indicates arc from 1 to 2 whose cost is 3\n";
-	for (i = 0; i < graph.arcs; i++)
-		cin>>graph.arcmatrix[0][i]>>graph.arcmatrix[1][i]>>graph.weightmat[i];
-	for(i=0;i<graph.arcs;i++)
+	graph.fstar = new int [graph.nodes + 1];
+	graph.rstar = new int [graph.nodes + 1];
+	cout << "Nodes: 1 to "<<graph.nodes<<"\nEnter the arcs (maximum value of weight:32766)\nFormat : origin destination weight\nE.g: 1 2 3 indicates arc from 1 to 2 whose cost is 3\n";
+	for (int i = 0; i < graph.arcs; i++)
 	{
-		graph.arcmatrix[0][i]--;
-		graph.arcmatrix[1][i]--;
+		graph.fstarmatrix.push_back(ARC());
+		graph.rstarmatrix.push_back(ARC());
+		cin>>graph.fstarmatrix[i].head>>graph.fstarmatrix[i].tail>>graph.fstarmatrix[i].weight;
+		graph.fstarmatrix[i].head--;
+		graph.fstarmatrix[i].tail--;
+		graph.rstarmatrix[i].head = graph.fstarmatrix[i].head;
+		graph.rstarmatrix[i].tail = graph.fstarmatrix[i].tail;
+		graph.rstarmatrix[i].weight = graph.fstarmatrix[i].weight;
 	}
+	sort(graph.fstarmatrix.begin(), graph.fstarmatrix.end(), forwardstar());
+	sort(graph.rstarmatrix.begin(), graph.rstarmatrix.end(), reversestar());
+	if (graph.fstarmatrix[0].head!=0)
+	{
+		for (int i = 0; i < graph.fstarmatrix[0].head; ++i)
+		{
+			graph.fstar[i] = 0;
+		}
+	}
+	if (graph.fstarmatrix[0].tail!=0)
+	{
+		for (int i = 0; i < graph.fstarmatrix[0].tail; ++i)
+		{
+			graph.rstar[i] = 0;
+		}
+	}
+	int x = 0;
+	while(x < graph.arcs)
+	{
+		int i;
+		int y = graph.fstarmatrix[x].head;
+		graph.fstar[y] = x;
+		for (i = x; i < graph.arcs; ++i)
+		{
+			if (graph.fstarmatrix[i].head==y)
+			{
+				continue;
+			}
+			else
+			{
+				if (graph.fstarmatrix[i].head == y+1)
+				{
+					x = i;
+					break;
+				}
+				else
+				{
+					for (int j = y+1; j < graph.fstarmatrix[i].head; ++j)
+					{
+						graph.fstar[j] = i;
+					}
+					x = i;
+					break;
+				}
+			}
+		}
+		x = i;
+	}
+	for (int i = graph.fstarmatrix[ graph.arcs - 1 ].head + 1; i <= graph.nodes; ++i)
+	{
+		graph.fstar[i] = graph.arcs;
+	}
+	x = 0;
+	while(x < graph.arcs)
+	{
+		int i;
+		int y = graph.rstarmatrix[x].tail;
+		graph.rstar[y] = x;
+		for (i = x; i < graph.arcs; ++i)
+		{
+			if (graph.rstarmatrix[i].tail==y)
+			{
+				continue;
+			}
+			else
+			{
+				if (graph.rstarmatrix[i].tail == y+1)
+				{
+					x = i;
+					break;
+				}
+				else
+				{
+					for (int j = y+1; j < graph.rstarmatrix[i].tail; ++j)
+					{
+						graph.rstar[j] = i;
+					}
+					x = i;
+					break;
+				}
+			}
+		}
+		x = i;
+	}
+	for (int i = graph.rstarmatrix[ graph.arcs - 1 ].tail + 1; i <= graph.nodes; ++i)
+	{
+		graph.rstar[i] = graph.arcs;
+	}
+	//graph.fstar[graph.nodes] = graph.arcs;
+	//graph.rstar[graph.nodes] = graph.arcs;
+	/*cout<<"FSTARMATRIX:"<<endl;
+	for (int i = 0; i < graph.arcs; ++i)
+	{
+		cout<<i<<' '<<graph.fstarmatrix[i].head<<' '<<graph.fstarmatrix[i].tail<<' '<<graph.fstarmatrix[i].weight<<endl;
+	}
+	cout<<"FSTAR:"<<endl;
+	for (int i = 0; i <= graph.nodes; ++i)
+	{
+		cout<<i<<' '<<graph.fstar[i]<<endl;
+	}
+	cout<<"RSTARMATRIX:"<<endl;
+	for (int i = 0; i < graph.arcs; ++i)
+	{
+		cout<<i<<' '<<graph.rstarmatrix[i].head<<' '<<graph.rstarmatrix[i].tail<<' '<<graph.rstarmatrix[i].weight<<endl;
+	}
+	cout<<"RSTAR:"<<endl;
+	for (int i = 0; i <= graph.nodes; ++i)
+	{
+		cout<<i<<' '<<graph.rstar[i]<<endl;
+	}*/
 }
