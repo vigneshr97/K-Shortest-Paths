@@ -1,8 +1,7 @@
 #pragma once
-#include "basic.h"
 #include "kspath.h"
 using namespace std;
-class network : public basic, public kspath
+class network : public kspath
 {
 public:
 	GRAPH graph;

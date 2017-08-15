@@ -9,7 +9,6 @@
 #include <time.h>
 #include <vector>
 #include <algorithm>
-#include "basic.h"
 #include "network.h"
 #include "kspath.h"
 void network::outputdata()

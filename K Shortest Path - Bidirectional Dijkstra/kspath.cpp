@@ -10,7 +10,6 @@
 #include <ctime>
 #include <time.h>
 #include "kspath.h"
-#include "basic.h"
 using namespace std;
 #define min(a,b) (a<b)?a:b
 #define max(a,b) (a>b)?a:b
