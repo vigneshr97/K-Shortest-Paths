@@ -34,27 +34,6 @@ bool kspath::cyclic(SPATH a)
 	return 0;
 }
 
-
-bool kspath::cyclic(PATH a)
-{
-	int asize = a.pathlist.size();
-	vector<int> v[2];
-	for (int i = 0; i < asize; ++i)
-	{
-		if (find(v[0].begin(),v[0].end(),a.pathlist[i])!=v[0].end())
-		{
-			v[1][find(v[0].begin(),v[0].end(),a.pathlist[i])-v[0].begin()]+=1;
-			return 1;			
-		}
-		else
-		{
-			v[0].push_back(a.pathlist[i]);
-			v[1].push_back(1);
-		}
-	}
-	return 0;
-}
-
 bool kspath::cyclic(YENPATH a)
 {
 	int asize = a.pathlist.size();
@@ -77,8 +56,6 @@ bool kspath::cyclic(YENPATH a)
 
 bool kspath::cyclic(SPATH a, bool *mn)
 {
-	//std::find(v.begin(), v.end(), x) != v.end();
-	//find(v.begin(), v.end(), old_name_) - v.begin();
 	int asize = a.pathlist.size();
 	vector<int> v[2];
 	for (int i = 0; i < asize; ++i)
@@ -100,30 +77,6 @@ bool kspath::cyclic(SPATH a, bool *mn)
 	return 0;
 }
 
-bool kspath::cyclic(PATH a, bool *mn)
-{
-	//std::find(v.begin(), v.end(), x) != v.end();
-	//find(v.begin(), v.end(), old_name_) - v.begin();
-	int asize = a.pathlist.size();
-	vector<int> v[2];
-	for (int i = 0; i < asize; ++i)
-	{
-		if (mn[a.pathlist[i]])
-		{
-			if (find(v[0].begin(),v[0].end(),a.pathlist[i])!=v[0].end())
-			{
-				v[1][find(v[0].begin(),v[0].end(),a.pathlist[i])-v[0].begin()]+=1;
-				return 1;			
-			}
-			else
-			{
-				v[0].push_back(a.pathlist[i]);
-				v[1].push_back(1);
-			}
-		}
-	}
-	return 0;
-}
 
 bool kspath::same_path(SPATH a, SPATH b)
 {
@@ -154,34 +107,6 @@ bool kspath::same_path(SPATH a, SPATH b)
     return returnval;
 }
 
-bool kspath::same_path(PATH a, PATH b)
-{
-	bool returnval = 1;
-    double diff = (a.weight>b.weight)?(a.weight-b.weight):(b.weight-a.weight);
-    int asize = a.pathlist.size();
-    int bsize = b.pathlist.size();
-    if(diff>0.001)
-        returnval = 0;
-    else
-        {
-            if(asize!=bsize)
-            {
-                returnval = 0;
-            }
-            else
-                {
-                    for(int i=0;i<asize;i++)
-                        {
-                            if(a.pathlist[i]!=b.pathlist[i])
-                            {
-                                returnval = 0;
-                                break;
-                            }
-                        }
-                }
-        }
-    return returnval;
-}
 
 bool kspath::same_path(YENPATH a, YENPATH b)
 {
@@ -222,28 +147,6 @@ YENPATH kspath::mergepath( YENPATH P1, YENPATH P2 )
 	P.pathlist.insert( P.pathlist.end(), P1.pathlist.begin(), P1.pathlist.end() );
 	P.pathlist.insert( P.pathlist.end(), P2.pathlist.begin()+1, P2.pathlist.end() );
 	P.found = P2.found;
-	return P;
-}
-PATH kspath::mergepath(PATH P1, PATH P2, double connectingweight = 0)
-{
-	PATH P;
-	int p1size = P1.pathlist.size();
-	int p2size = P2.pathlist.size();
-	reverse(P2.pathlist.begin(),P2.pathlist.end());
-	if( P1.end == P2.end)
-	{
-		P.weight = P1.weight+P2.weight;
-		P.pathlist.reserve(p1size+p2size-1);
-		P.pathlist.insert( P.pathlist.end(), P1.pathlist.begin(), P1.pathlist.end() );
-		P.pathlist.insert( P.pathlist.end(), P2.pathlist.begin()+1, P2.pathlist.end() );
-	}
-	else
-	{
-		P.weight = P1.weight+P2.weight+connectingweight;
-		P.pathlist.reserve(p1size+p2size);
-		P.pathlist.insert( P.pathlist.end(), P1.pathlist.begin(), P1.pathlist.end() );
-		P.pathlist.insert( P.pathlist.end(), P2.pathlist.begin(), P2.pathlist.end() );
-	}
 	return P;
 }
 
@@ -559,8 +462,6 @@ YENPATHMAT kspath::yen(GRAPH graph, int Origin, int Destination, int K)
 	return P;
 }
 
-
-
 SPATHMAT kspath::bidijkstra(GRAPH graph, int Origin, int Destination, int K)
 {
 	int s;
@@ -638,14 +539,13 @@ SPATHMAT kspath::bidijkstra(GRAPH graph, int Origin, int Destination, int K)
 	while(paths_obtained<K)
 	{
 		int mp1, mp2;//Meeting Point
+		int tempfsz, tempbsz;
 		bool breakingvar = 0;
 		double t1 = clock();
 		while(true)
 		{
 			int tpsz = tempforwardpathlist.pathmat.size();
 			int bpsz = tempreversepathlist.pathmat.size();
-			cout<<"temp_f size = "<<tpsz<<endl;
-			cout<<"temp_b size = "<<bpsz<<endl;
 			if (tpsz*bpsz==0)
 			{
 				allarcsvisited = 1;
@@ -689,7 +589,7 @@ SPATHMAT kspath::bidijkstra(GRAPH graph, int Origin, int Destination, int K)
 					}
 				}
 				//GIVING THE BEST AND ACCESSIBLE VALUES OF THE BEST PATH
-				int tempfsz = tempforwardpathlist.pathmat.size();
+				tempfsz = tempforwardpathlist.pathmat.size();
 				minweightf = 32767;
 				s = 0;
 				for (int i = graph.fstar[bestfpath.end]; i < graph.fstar[bestfpath.end + 1]; ++i)
@@ -707,11 +607,15 @@ SPATHMAT kspath::bidijkstra(GRAPH graph, int Origin, int Destination, int K)
 						}
 					}
 				}	
-
+				cout<<"F End: "<<bestfpath.end<<endl;
 				breakingvarinloop = 0;
 
 				if (s!=0)
 				{
+					P1sz = P1.pathmat.size();
+					P2sz = P2.pathmat.size();
+					tempfsz = tempforwardpathlist.pathmat.size();
+					tempbsz = tempreversepathlist.pathmat.size();
 					P1.pathmat.push_back(SPATH());
 					tempforwardpathlist.pathmat.push_back(SPATH());
 					P1.pathmat[P1sz] = bestfpath;
@@ -731,6 +635,16 @@ SPATHMAT kspath::bidijkstra(GRAPH graph, int Origin, int Destination, int K)
 									break;
 								}
 							}
+							/*else
+							{
+								if(kspath::cyclic(mergepath(P1.pathmat[P1sz],P2.pathmat[i]),mn)==0)
+								{
+									mp1 = P1sz;
+									mp2 = i;
+									breakingvarinloop = 1;
+									break;
+								}
+							}*/
 						}
 					}
 				}
@@ -775,7 +689,7 @@ SPATHMAT kspath::bidijkstra(GRAPH graph, int Origin, int Destination, int K)
 					}
 				}
 			}
-			int tempbsz = tempreversepathlist.pathmat.size();
+			tempbsz = tempreversepathlist.pathmat.size();
 			minweightb = 32767;
 			s = 0;
 			for (int i = graph.rstar[bestbpath.end]; i < graph.rstar[bestbpath.end+1]; ++i)
@@ -793,10 +707,15 @@ SPATHMAT kspath::bidijkstra(GRAPH graph, int Origin, int Destination, int K)
 					}
 				}
 			}
+			cout<<"B End: "<<bestbpath.end<<endl;
 			breakingvarinloop = 0;
 			P1sz = P1.pathmat.size();
 			if (s!=0)
 			{
+				P1sz = P1.pathmat.size();
+				P2sz = P2.pathmat.size();
+				tempfsz = tempforwardpathlist.pathmat.size();
+				tempbsz = tempreversepathlist.pathmat.size();
 				P2.pathmat.push_back(SPATH());
 				tempreversepathlist.pathmat.push_back(SPATH());
 				P2.pathmat[P2sz] = bestbpath;
@@ -955,28 +874,31 @@ SPATHMAT kspath::bidijkstra(GRAPH graph, int Origin, int Destination, int K)
 						int arcindex;
 						if(P1.pathmat[i].end==P2.pathmat[j].end)
 						{
-							temppath = mergepath(P1.pathmat[i],P2.pathmat[j]);
-							psize = P.pathmat.size();
-							samepath = 0;
-							for (int k = 0; k < psize; ++k)
-							{
-								if (same_path(temppath,P.pathmat[k]))
+							if(P1.pathmat[i].weight+P2.pathmat[j].weight<=boundweight)
+							{	
+								temppath = mergepath(P1.pathmat[i],P2.pathmat[j]);
+								psize = P.pathmat.size();
+								samepath = 0;
+								for (int k = 0; k < psize; ++k)
 								{
-									samepath = 1;
-									break;
+									if (same_path(temppath,P.pathmat[k]))
+									{
+										samepath = 1;
+										break;
+									}
 								}
+								if (samepath)
+								{
+									continue;
+								}
+								if (kspath::cyclic(temppath,mn))
+								{
+									continue;
+								}
+								P.pathmat.push_back(SPATH());
+								P.pathmat[psize] = temppath;
+								sort(P.pathmat.begin(),P.pathmat.end(),weightsort());
 							}
-							if (samepath)
-							{
-								continue;
-							}
-							if (kspath::cyclic(temppath,mn))
-							{
-								continue;
-							}
-							P.pathmat.push_back(SPATH());
-							P.pathmat[psize] = temppath;
-							sort(P.pathmat.begin(),P.pathmat.end(),weightsort());
 						}
 						else
 						{
@@ -1029,8 +951,6 @@ SPATHMAT kspath::bidijkstra(GRAPH graph, int Origin, int Destination, int K)
 			break;
 		}
 		double t3 = clock();
-		//cout<<"Preprocessing time:"<<(t2 - t1) / CLOCKS_PER_SEC<<endl;
-		//cout<<"Postprocessing time:"<<(t3 - t2) / CLOCKS_PER_SEC<<endl;
 		paths_obtained = P.pathmat.size();
 		if (allarcsvisited)
 		{
@@ -1048,7 +968,7 @@ SPATHMAT kspath::bidijkstra(GRAPH graph, int Origin, int Destination, int K)
 		{
 			cout<<P1.pathmat[i].pathlist[j]<<' ';
 		}
-		cout<<endl;
+		cout<<" END:"<<P1.pathmat[i].end<<endl;
 	}
 	cout<<"P2:\n";
 	for (int i = 0; i < p2ss; ++i)
@@ -1059,7 +979,7 @@ SPATHMAT kspath::bidijkstra(GRAPH graph, int Origin, int Destination, int K)
 		{
 			cout<<P2.pathmat[i].pathlist[j]<<' ';
 		}
-		cout<<endl;
+		cout<<" END:"<<P2.pathmat[i].end<<endl;
 	}*/
 	cout<<"paths_obtained:"<<paths_obtained<<endl;
 	return P;

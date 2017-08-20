@@ -17,12 +17,6 @@ struct GRAPH
 	int *fstar;
 	int *rstar;
 };
-struct PATH
-{
-	double weight;
-	vector<int> pathlist;
-	int end;
-};
 struct YENPATH
 {
 	double weight;
@@ -56,13 +50,6 @@ struct reversestar
 		return ((a.tail < b.tail)||((a.tail == b.tail) && (a.head < b.head)));
 	}
 };
-struct comparebyweight
-{
-	bool operator()(const PATH &a, const PATH &b) const
-	{
-		return (a.weight<b.weight);
-	}
-};
 struct cw
 {
 	bool operator()(const YENPATH &a, const YENPATH &b) const
@@ -86,7 +73,6 @@ struct weightsort
 };
 typedef struct GRAPH GRAPH;
 typedef struct SPATH SPATH;
-typedef struct PATH PATH;
 typedef struct YENPATH YENPATH;
 typedef struct bestweightsort bestweightsort;
 typedef struct weightsort weightsort;
@@ -98,15 +84,10 @@ struct SPATHMAT
 {
 	vector<SPATH> pathmat;
 };
-struct PATHMAT
-{
-	vector<PATH> pathmat;
-};
 struct YENPATHMAT
 {
 	vector<YENPATH> pathmat;
 };
-typedef struct PATHMAT PATHMAT;
 typedef struct SPATHMAT SPATHMAT;
 typedef struct YENPATHMAT YENPATHMAT;
 #pragma once
@@ -114,15 +95,11 @@ class kspath
 {
 public:
 	bool cyclic(SPATH);
-	bool cyclic(PATH);
 	bool cyclic(YENPATH);
-	bool cyclic(PATH , bool *);
 	bool cyclic(SPATH , bool *);
 	bool same_path(SPATH, SPATH);
-	bool same_path(PATH, PATH);
 	bool same_path(YENPATH, YENPATH);
 	YENPATH mergepath(YENPATH, YENPATH);
-	PATH mergepath(PATH, PATH, double);
 	SPATH mergepath(SPATH, SPATH, double);
 	YENPATH sp( GRAPH, int, int);
 	YENPATHMAT yen(GRAPH, int, int, int);
