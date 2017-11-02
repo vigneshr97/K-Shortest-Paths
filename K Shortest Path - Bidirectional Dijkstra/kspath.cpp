@@ -9,29 +9,85 @@
 #include <algorithm>
 #include <ctime>
 #include <time.h>
+#include <limits>
 #include "kspath.h"
 using namespace std;
 #define min(a,b) (a<b)?a:b
 #define max(a,b) (a>b)?a:b
 
-bool kspath::cyclic(SPATH a)
+bool kspath::acyclic(PATH a, int b)
 {
-	int asize = a.pathlist.size();
-	vector<int> v[2];
-	for (int i = 0; i < asize; ++i)
+	int size = a.pathlist.size();
+	for (int i = 0; i < size; ++i)
 	{
-		if (find(v[0].begin(),v[0].end(),a.pathlist[i])!=v[0].end())
+		if (a.pathlist[i]==b)
 		{
-			v[1][find(v[0].begin(),v[0].end(),a.pathlist[i])-v[0].begin()]+=1;
-			return 1;			
-		}
-		else
-		{
-			v[0].push_back(a.pathlist[i]);
-			v[1].push_back(1);
+			return 0;
 		}
 	}
-	return 0;
+	return 1;
+}
+
+void kspath::heapify(vector<int> &heap, int n, int i, vector<YENPATH> &path)
+{
+	int smallest = i;  
+	int l = 2*i + 1;  
+	int r = 2*i + 2;
+	if (l<n)
+	{
+		if (path[heap[l]].weight<path[heap[smallest]].weight)
+		{
+			smallest = l;
+		}
+	}
+	if (r<n)
+	{
+		if (path[heap[r]].weight<path[heap[smallest]].weight)
+		{
+			smallest = r;
+		}
+	}  
+	if (smallest != i)
+	{
+		swap(heap[i],heap[smallest]);
+		swap(path[heap[i]].position,path[heap[smallest]].position);
+		heapify(heap, n, smallest, path);
+	}
+}
+
+void kspath::heapify(vector<int> &heap, int n, int i, vector<NODE> &node)
+{
+	int smallest = i;
+	int l = 2*i+1;
+	int r = 2*i+2;
+	if (l<n)
+	{
+		int lpos = node[heap[l]].permanent;
+		int spos = node[heap[smallest]].permanent;
+		double lweight = node[heap[l]].pathmat[lpos].weight;
+		double sweight = node[heap[smallest]].pathmat[spos].weight;
+		if (lweight<sweight)
+		{
+			smallest = l;
+		}
+	}
+	if (r<n)
+	{
+		int rpos = node[heap[r]].permanent;
+		int spos = node[heap[smallest]].permanent;
+		double rweight = node[heap[r]].pathmat[rpos].weight;
+		double sweight = node[heap[smallest]].pathmat[spos].weight;
+		if (rweight<sweight)
+		{
+			smallest = r;
+		}
+	}
+	if (smallest!=i)
+	{
+		swap(node[heap[i]].position,node[heap[smallest]].position);
+		swap(heap[i],heap[smallest]);
+		heapify(heap,n,smallest,node);
+	}
 }
 
 bool kspath::cyclic(YENPATH a)
@@ -53,60 +109,6 @@ bool kspath::cyclic(YENPATH a)
 	}
 	return 0;
 }
-
-bool kspath::cyclic(SPATH a, bool *mn)
-{
-	int asize = a.pathlist.size();
-	vector<int> v[2];
-	for (int i = 0; i < asize; ++i)
-	{
-		if (mn[a.pathlist[i]])
-		{
-			if (find(v[0].begin(),v[0].end(),a.pathlist[i])!=v[0].end())
-			{
-				v[1][find(v[0].begin(),v[0].end(),a.pathlist[i])-v[0].begin()]+=1;
-				return 1;			
-			}
-			else
-			{
-				v[0].push_back(a.pathlist[i]);
-				v[1].push_back(1);
-			}
-		}
-	}
-	return 0;
-}
-
-
-bool kspath::same_path(SPATH a, SPATH b)
-{
-	bool returnval = 1;
-    double diff = (a.weight>b.weight)?(a.weight-b.weight):(b.weight-a.weight);
-    int asize = a.pathlist.size();
-    int bsize = b.pathlist.size();
-    if(diff>0.001)
-        returnval = 0;
-    else
-    {
-   		if(asize!=bsize)
-		{
-			returnval = 0;
-		}
-		else
-		{
-			for(int i=0;i<asize;i++)
-			{
-				if(a.pathlist[i]!=b.pathlist[i])
-				{
-					returnval = 0;
-					break;
-				}
-			}
-		}
-	}
-    return returnval;
-}
-
 
 bool kspath::same_path(YENPATH a, YENPATH b)
 {
@@ -150,159 +152,104 @@ YENPATH kspath::mergepath( YENPATH P1, YENPATH P2 )
 	return P;
 }
 
-SPATH kspath::mergepath(SPATH P1, SPATH P2, double connectingweight=0)
-{
-	SPATH P;
-	int p1size = P1.pathlist.size();
-	int p2size = P2.pathlist.size();
-	reverse(P2.pathlist.begin(),P2.pathlist.end());
-	if( P1.end == P2.end)
-	{
-		P.weight = P1.weight+P2.weight;
-		P.pathlist.reserve(p1size+p2size-1);
-		P.pathlist.insert( P.pathlist.end(), P1.pathlist.begin(), P1.pathlist.end() );
-		P.pathlist.insert( P.pathlist.end(), P2.pathlist.begin()+1, P2.pathlist.end() );
-	}
-	else
-	{
-		P.weight = P1.weight+P2.weight+connectingweight;
-		P.pathlist.reserve(p1size+p2size);
-		P.pathlist.insert( P.pathlist.end(), P1.pathlist.begin(), P1.pathlist.end() );
-		P.pathlist.insert( P.pathlist.end(), P2.pathlist.begin(), P2.pathlist.end() );
-	}
-	return P;
-}
-
 YENPATH kspath::sp(GRAPH graph, int Origin, int Destination)
 {
-	int s = 0;
-	bool *visited;
-	YENPATH P;
-	visited = new bool [graph.nodes];
-
-	YENPATHMAT path;
-
-	int minindex;
-	double minweight;
-
+	vector<YENPATH> path;
+	bool *visited = new bool [graph.nodes];
+	vector<int> heap;
+	//Initialization
 	for (int i = 0; i < graph.nodes; ++i)
 	{
-		path.pathmat.push_back(YENPATH());
-		path.pathmat[i].weight = 32767;
+		path.push_back(YENPATH());
+		path[i].weight = 32767;
+		path[i].pathlist = {};
 		visited[i] = 0;
+		path[i].position = -1;
 	}
-
-	for (int i = graph.fstar[Origin]; i < graph.fstar[Origin + 1]; ++i)
-	{
-		if (graph.fstarmatrix[i].weight<32000)
-		{
-			graph.fstarmatrix[i].faccess = 1;
-			s+=1;
-		}
-		else
-		{
-			graph.fstarmatrix[i].faccess = 0;
-		}
-	}
-
-	if (s==0)
-	{
-		P.found = 0;
-		return P;
-	}
-
+	path[Origin].weight = 0;
+	path[Origin].pathlist.push_back(Origin);
+	path[Origin].position = 0;
 	visited[Origin] = 1;
-	path.pathmat[Origin].weight = 0;
-	path.pathmat[Origin].pathlist.push_back(Origin);
-	path.pathmat[Origin].arcindex = {};
-	bool found = 1;
-	if (visited[Destination])
+	heap.push_back(Origin);
+	int heapsize = heap.size();
+	while(heapsize>0)
 	{
-		P.found = 1;
-		P = path.pathmat[Origin];
-		return P;
-	}
-	int i = 0;
-	while(i<graph.arcs)
-	{
-		i+=1;
-		s = 0;
-		for (int j = 0; j < graph.arcs; ++j)
+		int root = heap[0];
+		if (root==Destination)
 		{
-			if (graph.fstarmatrix[j].faccess)
+			path[Destination].found = 1;
+			return path[Destination];
+		}
+		visited[root] = 1;
+		path[heap[heapsize-1]].position = 0;
+		swap(heap[0],heap[heapsize-1]);
+		path[root].position = -1;
+		heap.pop_back();
+		heapsize = heap.size();
+		if (heapsize==2)
+		{
+			if (path[heap[0]].weight>path[heap[1]].weight)
 			{
-				if (s==0)
+				swap(heap[0],heap[1]);
+				swap(path[heap[0]].position,path[heap[1]].position);
+			}
+		}
+		if (heapsize>2)
+		{
+			heapify(heap,heapsize,0,path);
+		}
+		for (int i = graph.fstar[root]; i < graph.fstar[root+1]; ++i)
+		{
+			if (visited[graph.fstarmatrix[i].tail])
+			{
+				continue;
+			}
+			if (graph.fstarmatrix[i].weight>32000)
+			{
+				continue;
+			}
+			if (path[root].weight+graph.fstarmatrix[i].weight < path[graph.fstarmatrix[i].tail].weight)
+			{
+				path[graph.fstarmatrix[i].tail].weight = path[root].weight + graph.fstarmatrix[i].weight;
+				path[graph.fstarmatrix[i].tail].pathlist = path[root].pathlist;
+				path[graph.fstarmatrix[i].tail].pathlist.push_back(graph.fstarmatrix[i].tail);
+				if (path[graph.fstarmatrix[i].tail].position==-1)
 				{
-					minindex = j;
-					minweight = path.pathmat[graph.fstarmatrix[j].head].weight+graph.fstarmatrix[j].weight;
+					heap.push_back(graph.fstarmatrix[i].tail);
+					path[graph.fstarmatrix[i].tail].position = heapsize-1; 	
+					heapsize = heap.size();
+					for (int j = heapsize-1; j > 0 ; j=(j-1)/2)
+					{
+						if (path[heap[j]].weight<path[heap[(j-1)/2]].weight)
+						{
+							swap(heap[j],heap[(j-1)/2]);
+							swap(path[heap[j]].position,path[heap[(j-1)/2]].position);
+						}
+					}
 				}
 				else
 				{
-					if ((path.pathmat[graph.fstarmatrix[j].head].weight+graph.fstarmatrix[j].weight)<minweight)
+					int tailposition = path[graph.fstarmatrix[i].tail].position;
+					for (int j = tailposition; j > 0; j=(j-1)/2)
 					{
-						minindex = j;
-						minweight = path.pathmat[graph.fstarmatrix[j].head].weight+graph.fstarmatrix[j].weight;
+						if (path[heap[j]].weight<path[heap[(j-1)/2]].weight)
+						{
+							swap(heap[j],heap[(j-1)/2]);
+							swap(path[heap[j]].position,path[heap[(j-1)/2]].position);
+						}
 					}
 				}
-				s+=1;
 			}
 		}
-		if (s==0)
-		{
-			found = 0;
-			break;
-		}
-		visited[graph.fstarmatrix[minindex].tail] = 1;
-		graph.fstarmatrix[minindex].faccess = 0;
-		if (minweight < path.pathmat[graph.fstarmatrix[minindex].tail].weight)
-		{
-			path.pathmat[graph.fstarmatrix[minindex].tail].weight = minweight;
-			path.pathmat[graph.fstarmatrix[minindex].tail].pathlist = path.pathmat[graph.fstarmatrix[minindex].head].pathlist;
-			path.pathmat[graph.fstarmatrix[minindex].tail].pathlist.push_back(graph.fstarmatrix[minindex].tail);
-			path.pathmat[graph.fstarmatrix[minindex].tail].arcindex = path.pathmat[graph.fstarmatrix[minindex].head].arcindex;
-			path.pathmat[graph.fstarmatrix[minindex].tail].arcindex.push_back(minindex);
-		}
-		if (visited[Destination])
-		{
-			break;
-		}
-		for (int j = graph.fstar[graph.fstarmatrix[minindex].tail]; j < graph.fstar[graph.fstarmatrix[minindex].tail+1]; ++j)
-		{
-			if (graph.fstarmatrix[j].weight<32000)
-			{
-				graph.fstarmatrix[j].faccess = 1;
-			}
-			if (graph.fstarmatrix[j].weight>=32000)
-			{
-				graph.fstarmatrix[j].faccess = 0;
-			}
-			if (visited[graph.fstarmatrix[j].tail])
-			{
-				graph.fstarmatrix[j].faccess = 0;
-			}
-		}
+		heapsize = heap.size();
 	}
-	if (found==0)
+	if (visited[Destination]==0)
 	{
+		YENPATH P;
 		P.found = 0;
 		return P;
 	}
-	else
-	{
-		P = path.pathmat[Destination];
-		if (P.weight<32000)
-		{
-			P.found = 1;
-		}
-		else
-		{
-			P.found = 0;
-		}
-	}
-	return P;
 }
-
-	
 
 YENPATHMAT kspath::yen(GRAPH graph, int Origin, int Destination, int K)
 {
@@ -325,11 +272,10 @@ YENPATHMAT kspath::yen(GRAPH graph, int Origin, int Destination, int K)
 		graphcopy.fstarmatrix[i].tail = graph.fstarmatrix[i].tail;
 		graphcopy.fstarmatrix[i].weight = graph.fstarmatrix[i].weight;
 	}
-
-	graphcopy.fstar = new int [graphcopy.nodes+1];
+	graphcopy.fstar = {};
 	for (int i = 0; i <= graphcopy.nodes; ++i)
 	{
-		graphcopy.fstar[i] = graph.fstar[i];
+		graphcopy.fstar.push_back(graph.fstar[i]);
 	}
 
 	P.pathmat.push_back(YENPATH());
@@ -462,525 +408,197 @@ YENPATHMAT kspath::yen(GRAPH graph, int Origin, int Destination, int K)
 	return P;
 }
 
-SPATHMAT kspath::bidijkstra(GRAPH graph, int Origin, int Destination, int K)
+PATHMAT kspath::dijkstra(GRAPH graph, int Origin, int Destination, int K)
 {
-	int s;
-	int paths_obtained = 0;
-	bool *cpp, *mn;
-	SPATHMAT P, P1, P2, tempforwardpathlist, tempreversepathlist;
+	//Initialization Block
+	PATHMAT P;
+	vector<int> heap;
+	vector<NODE> n;
+	int heapsize;
+	P.kn = 0;
+	P.km = 0;
 	
-	cpp = new bool[graph.nodes];
-	mn = new bool[graph.nodes];
-
-	P1.pathmat.push_back(SPATH());
-	P2.pathmat.push_back(SPATH());
-	tempforwardpathlist.pathmat.push_back(SPATH());
-	tempreversepathlist.pathmat.push_back(SPATH());
-
-	P1.pathmat[0].weight = 0;
-	P2.pathmat[0].weight = 0;
-	tempforwardpathlist.pathmat[0].weight = 0;
-	tempreversepathlist.pathmat[0].weight = 0;
-
-	P1.pathmat[0].pathlist.push_back(Origin);
-	P1.pathmat[0].end = Origin;
-	P2.pathmat[0].pathlist.push_back(Destination);
-	P2.pathmat[0].end = Destination;
-
-	tempforwardpathlist.pathmat[0].pathlist.push_back(Origin);
-	tempforwardpathlist.pathmat[0].end = Origin;
-	tempreversepathlist.pathmat[0].pathlist.push_back(Destination);
-	tempreversepathlist.pathmat[0].end = Destination;
-	
-	double minweightf = 32767;
-	double minweightb = 32767;
-	tempforwardpathlist.pathmat[0].bestweight = 32767;
-	tempreversepathlist.pathmat[0].bestweight = 32767;
-	tempforwardpathlist.pathmat[0].accessible_arcs = {};
-	tempreversepathlist.pathmat[0].accessible_arcs = {};
-
-	for (int i = graph.fstar[Origin]; i < graph.fstar[Origin+1]; ++i)
+	for (int i = 0; i < graph.nodes; ++i)
 	{
-		tempforwardpathlist.pathmat[0].accessible_arcs.push_back(i);
-		if( graph.fstarmatrix[i].weight < tempforwardpathlist.pathmat[0].bestweight )
+		n.push_back(NODE());
+		n[i].permanent = 0;
+		n[i].finite = 0;
+		n[i].position = -1;
+		for (int j = 0; j < K; ++j)
 		{
-			tempforwardpathlist.pathmat[0].bestweight = graph.fstarmatrix[i].weight;
-			tempforwardpathlist.pathmat[0].bestarc = i;
-			tempforwardpathlist.pathmat[0].bestnode = graph.fstarmatrix[i].tail;
+			n[i].pathmat.push_back(PATH());
+			n[i].pathmat[j].weight = 32767;
 		}
 	}
 
-	for (int i = graph.rstar[Destination]; i < graph.rstar[Destination+1]; ++i)
+	heap.push_back(Origin);
+	n[Origin].position = 0;
+	n[Origin].finite = 1;
+	n[Origin].pathmat[0].weight = 0;
+	n[Origin].pathmat[0].pathlist = {};
+	n[Origin].pathmat[0].pathlist.push_back(Origin);
+
+	//Loop
+	ofstream output;
+	output.open("output.txt");
+	heapsize = heap.size();
+	while( (n[Destination].permanent < K) && (heapsize>0) )
 	{
-		tempreversepathlist.pathmat[0].accessible_arcs.push_back(i);
-		if( graph.rstarmatrix[i].weight < tempreversepathlist.pathmat[0].bestweight )
+		P.kn+=1;
+		heapsize = heap.size();
+		int root = heap[0];
+		int rootp = n[root].permanent;
+		int rootp_sz = n[root].pathmat[rootp].pathlist.size();
+		n[heap[heapsize-1]].position = 0;
+		n[root].position = -1;
+		swap(heap[0],heap[heapsize-1]);
+		heap.pop_back();
+		heapsize = heap.size();
+		n[root].permanent+=1;
+
+		if (heapsize==2)
 		{
-			tempreversepathlist.pathmat[0].bestweight = graph.rstarmatrix[i].weight;
-			tempreversepathlist.pathmat[0].bestarc = i;
-			tempreversepathlist.pathmat[0].bestnode = graph.rstarmatrix[i].head;
-		}
-	}
-
-	for (int i = 0; i < graph.nodes; i++)
-	{
-		cpp[i] = 0;
-		mn[i] = 0;
-	}
-
-	cpp[Origin] = 1;
-	cpp[Destination] = 1;
-	
-	bool allarcsvisited = 0;
-	int P1sz, P2sz, Psz, psize, p1size, p2size;
-	bool startfromforward = 1;
-
-	srand(time(NULL));
-
-	while(paths_obtained<K)
-	{
-		int mp1, mp2;//Meeting Point
-		int tempfsz, tempbsz;
-		bool breakingvar = 0;
-		double t1 = clock();
-		while(true)
-		{
-			int tpsz = tempforwardpathlist.pathmat.size();
-			int bpsz = tempreversepathlist.pathmat.size();
-			if (tpsz*bpsz==0)
+			int perm0 = n[heap[0]].permanent;
+			int perm1 = n[heap[1]].permanent;
+			if (n[heap[0]].pathmat[perm0].weight>n[heap[1]].pathmat[perm1].weight)
 			{
-				allarcsvisited = 1;
-				break;
-			}
-			bool breakingvarinloop = 0;
-
-			SPATH bestfpath, bestbpath;
-			P1sz = P1.pathmat.size();
-			P2sz = P2.pathmat.size();
-
-			if(startfromforward)
-			{	
-				sort(tempforwardpathlist.pathmat.begin(), tempforwardpathlist.pathmat.end(),bestweightsort());
-				bestfpath.weight = tempforwardpathlist.pathmat[0].bestweight;
-				bestfpath.pathlist = tempforwardpathlist.pathmat[0].pathlist;
-				bestfpath.pathlist.push_back(tempforwardpathlist.pathmat[0].bestnode);
-				bestfpath.end = tempforwardpathlist.pathmat[0].bestnode;
-				bestfpath.accessible_arcs = {};
-				tempforwardpathlist.pathmat[0].accessible_arcs.erase(std::remove(tempforwardpathlist.pathmat[0].accessible_arcs.begin(), tempforwardpathlist.pathmat[0].accessible_arcs.end(), tempforwardpathlist.pathmat[0].bestarc), tempforwardpathlist.pathmat[0].accessible_arcs.end());
-				int tempfpsz = tempforwardpathlist.pathmat[0].accessible_arcs.size();
-				//UPDATING BEST ACCESSIBLE ARC OR REMOVING THE PATH IF ACCESSIBLE ARC LIST IS EMPTY
-				if(tempfpsz == 0)
-				{
-					tempforwardpathlist.pathmat.erase(tempforwardpathlist.pathmat.begin());
-				}
-				else
-				{
-					double mintempweight = 32767;
-					for (int i = 0; i < tempfpsz; ++i)
-					{
-						int arcnumber = tempforwardpathlist.pathmat[0].accessible_arcs[i];
-						double testweight  = tempforwardpathlist.pathmat[0].weight+graph.fstarmatrix[arcnumber].weight;
-						if ( testweight < mintempweight )
-						{
-							mintempweight = testweight;
-							tempforwardpathlist.pathmat[0].bestweight = mintempweight;
-							tempforwardpathlist.pathmat[0].bestarc = arcnumber;
-							tempforwardpathlist.pathmat[0].bestnode = graph.fstarmatrix[arcnumber].tail;
-						}
-					}
-				}
-				//GIVING THE BEST AND ACCESSIBLE VALUES OF THE BEST PATH
-				tempfsz = tempforwardpathlist.pathmat.size();
-				minweightf = 32767;
-				s = 0;
-				for (int i = graph.fstar[bestfpath.end]; i < graph.fstar[bestfpath.end + 1]; ++i)
-				{
-					if(find(bestfpath.pathlist.begin(),bestfpath.pathlist.end(),graph.fstarmatrix[i].tail)==bestfpath.pathlist.end())
-					{
-						bestfpath.accessible_arcs.push_back(i);
-						if(bestfpath.weight+graph.fstarmatrix[i].weight < minweightf)
-						{
-							s+=1;
-							bestfpath.bestweight = bestfpath.weight+graph.fstarmatrix[i].weight;
-							minweightf = bestfpath.weight+graph.fstarmatrix[i].weight;
-							bestfpath.bestarc = i;
-							bestfpath.bestnode = graph.fstarmatrix[i].tail;
-						}
-					}
-				}	
-				cout<<"F End: "<<bestfpath.end<<endl;
-				breakingvarinloop = 0;
-
-				if (s!=0)
-				{
-					P1sz = P1.pathmat.size();
-					P2sz = P2.pathmat.size();
-					tempfsz = tempforwardpathlist.pathmat.size();
-					tempbsz = tempreversepathlist.pathmat.size();
-					P1.pathmat.push_back(SPATH());
-					tempforwardpathlist.pathmat.push_back(SPATH());
-					P1.pathmat[P1sz] = bestfpath;
-					tempforwardpathlist.pathmat[tempfsz] = bestfpath;
-					for (int i = 0; i < P2sz; ++i)
-					{	
-						if ((P1.pathmat[P1sz].end == P2.pathmat[i].end)&&(mn[P2.pathmat[i].end]==0))
-						{
-							mn[P2.pathmat[i].end] = 1;
-							if (cpp[P2.pathmat[i].end]==0)
-							{
-								if(kspath::cyclic(mergepath(P1.pathmat[P1sz],P2.pathmat[i]),mn)==0)
-								{
-									mp1 = P1sz;
-									mp2 = i;
-									breakingvarinloop = 1;
-									break;
-								}
-							}
-							/*else
-							{
-								if(kspath::cyclic(mergepath(P1.pathmat[P1sz],P2.pathmat[i]),mn)==0)
-								{
-									mp1 = P1sz;
-									mp2 = i;
-									breakingvarinloop = 1;
-									break;
-								}
-							}*/
-						}
-					}
-				}
-				tempfsz = tempforwardpathlist.pathmat.size();
-				if (tempfsz==0)
-				{
-					allarcsvisited = 1;
-					break;
-				}
-				if (breakingvarinloop)
-				{
-					startfromforward = 0;
-					break;
-				}
-			}
-			startfromforward = 1;
-			sort(tempreversepathlist.pathmat.begin(), tempreversepathlist.pathmat.end(),bestweightsort());
-			bestbpath.weight = tempreversepathlist.pathmat[0].bestweight;
-			bestbpath.pathlist = tempreversepathlist.pathmat[0].pathlist;
-			bestbpath.pathlist.push_back(tempreversepathlist.pathmat[0].bestnode);
-			bestbpath.end = tempreversepathlist.pathmat[0].bestnode;
-			bestbpath.accessible_arcs = {};
-			tempreversepathlist.pathmat[0].accessible_arcs.erase(std::remove(tempreversepathlist.pathmat[0].accessible_arcs.begin(), tempreversepathlist.pathmat[0].accessible_arcs.end(), tempreversepathlist.pathmat[0].bestarc), tempreversepathlist.pathmat[0].accessible_arcs.end());
-			int tempbpsz = tempreversepathlist.pathmat[0].accessible_arcs.size();
-			if(tempbpsz == 0)
-			{
-				tempreversepathlist.pathmat.erase(tempreversepathlist.pathmat.begin());
-			}
-			else
-			{
-				double mintempweight = 32767;
-				for (int i = 0; i < tempbpsz; ++i)
-				{
-					int arcnumber = tempreversepathlist.pathmat[0].accessible_arcs[i];
-					double testweight  = tempreversepathlist.pathmat[0].weight+graph.rstarmatrix[arcnumber].weight;
-					if ( testweight < mintempweight)
-					{
-						mintempweight = testweight;
-						tempreversepathlist.pathmat[0].bestweight = mintempweight;
-						tempreversepathlist.pathmat[0].bestarc = arcnumber;
-						tempreversepathlist.pathmat[0].bestnode = graph.rstarmatrix[arcnumber].head;
-					}
-				}
-			}
-			tempbsz = tempreversepathlist.pathmat.size();
-			minweightb = 32767;
-			s = 0;
-			for (int i = graph.rstar[bestbpath.end]; i < graph.rstar[bestbpath.end+1]; ++i)
-			{
-				if(find(bestbpath.pathlist.begin(),bestbpath.pathlist.end(),graph.rstarmatrix[i].head)==bestbpath.pathlist.end())
-				{
-					bestbpath.accessible_arcs.push_back(i);
-					if(bestbpath.weight+graph.rstarmatrix[i].weight < minweightb)
-					{
-						s+=1;
-						bestbpath.bestweight = bestbpath.weight+graph.rstarmatrix[i].weight;
-						minweightb = bestbpath.weight+graph.rstarmatrix[i].weight;
-						bestbpath.bestarc = i;
-						bestbpath.bestnode = graph.rstarmatrix[i].head;
-					}
-				}
-			}
-			cout<<"B End: "<<bestbpath.end<<endl;
-			breakingvarinloop = 0;
-			P1sz = P1.pathmat.size();
-			if (s!=0)
-			{
-				P1sz = P1.pathmat.size();
-				P2sz = P2.pathmat.size();
-				tempfsz = tempforwardpathlist.pathmat.size();
-				tempbsz = tempreversepathlist.pathmat.size();
-				P2.pathmat.push_back(SPATH());
-				tempreversepathlist.pathmat.push_back(SPATH());
-				P2.pathmat[P2sz] = bestbpath;
-				tempreversepathlist.pathmat[tempbsz] = bestbpath;
-				for (int i = 0; i < P1sz; ++i)
-				{
-					if ((P2.pathmat[P2sz].end == P1.pathmat[i].end)&&(mn[P1.pathmat[i].end]==0))
-					{
-						mn[P1.pathmat[i].end] = 1;
-						if (cpp[P1.pathmat[i].end]==0)
-						{
-							if(kspath::cyclic(mergepath(P1.pathmat[i],P2.pathmat[P2sz]),mn)==0)
-							{
-								mp1 = i;
-								mp2 = P2sz;
-								breakingvarinloop = 1;
-								break;
-							}
-						}
-					}
-				}
-			}
-			tempbsz = tempreversepathlist.pathmat.size();
-			if (tempbsz==0)
-			{
-				allarcsvisited = 1;
-				break;
-			}
-			if (breakingvarinloop)
-			{
-				break;
+				n[heap[0]].position = 1;
+				n[heap[1]].position = 0;
+				swap(heap[0],heap[1]);
 			}
 		}
-		double t2 = clock();
-		paths_obtained = P.pathmat.size();
-		if (paths_obtained<K)
+		if (heapsize>2)
 		{
-			if (allarcsvisited)
+			heapify(heap,heapsize,0,n);
+		}
+		for (int i = graph.fstar[root]; i < graph.fstar[root+1]; ++i)
+		{
+			P.km+=1;
+			int tail = graph.fstarmatrix[i].tail;
+			if (n[tail].pathmat[K-1].weight <= n[root].pathmat[rootp].weight+graph.fstarmatrix[i].weight)
 			{
-				SPATH temppath;
-				bool samepath = 0;
-				Psz = P.pathmat.size();
-				P1sz = P1.pathmat.size();
-				P2sz = P2.pathmat.size();
-				for (int i = 0; i < P1sz; ++i)
-				{
-					for (int j = 0; j < P2sz; ++j)
-					{
-						double connectingweight;
-						int arcindex;
-						if (P1.pathmat[i].end == P2.pathmat[j].end)
-						{
-							temppath = mergepath(P1.pathmat[i],P2.pathmat[j]);
-							samepath = 0;
-							Psz = P.pathmat.size();
-							for (int k = 0; k < Psz; ++k)
-							{
-								if (same_path(temppath,P.pathmat[k]))
-								{
-									samepath = 1;
-									break;
-								}
-							}
-							if (samepath)
-							{
-								continue;
-							}
-							if (kspath::cyclic(temppath,mn))
-							{
-								continue;
-							}
-							Psz = P.pathmat.size();
-							P.pathmat.push_back(SPATH());
-							P.pathmat[Psz] = temppath;
-							sort(P.pathmat.begin(), P.pathmat.end(), weightsort());
-						}
-						else
-						{
-							arcindex = -1;
-							for (int k = graph.fstar[P1.pathmat[i].end]; k < graph.fstar[ P1.pathmat[i].end + 1 ]; ++k)
-							{
-								if (P2.pathmat[j].end==graph.fstarmatrix[k].tail)
-								{
-									arcindex = k;
-									connectingweight = graph.fstarmatrix[k].weight;
-								}	
-							}
-							if (arcindex == -1)
-							{
-								continue;
-							}
-							temppath = mergepath(P1.pathmat[i], P2.pathmat[j], connectingweight);
-							int psize = P.pathmat.size();
-							samepath = 0;
-							for (int k = 0; k < psize; ++k)
-							{
-								if (same_path(temppath,P.pathmat[k]))
-								{
-									samepath = 1;
-									break;
-								}
-							}
-							if (samepath)
-							{
-								continue;
-							}
-							if (kspath::cyclic(temppath,mn))
-							{
-								continue;
-							}
-							
-							P.pathmat.push_back(SPATH());
-							P.pathmat[psize] = temppath;
-							sort(P.pathmat.begin(), P.pathmat.end(),weightsort());
-						}
-					}
-				}
+				continue;
 			}
-			else
+			if (acyclic(n[root].pathmat[rootp],tail))
 			{
-				double boundweight = P1.pathmat[mp1].weight + P2.pathmat[mp2].weight;
-				SPATH temppath = mergepath(P1.pathmat[mp1],P2.pathmat[mp2]);
-				int temppathsize = temppath.pathlist.size();
-				int psize = P.pathmat.size();
-				for (int i = 0; i < temppathsize; ++i)
+				int insert_pos = n[tail].permanent;
+				for (int j = n[tail].finite-1; j >= n[tail].permanent; --j)
 				{
-					cpp[temppath.pathlist[i]]=1;
-				}
-				bool samepath = 0;
-				for (int i = 0; i < psize; ++i)
-				{
-					if(same_path(temppath,P.pathmat[i]))
+					if (n[tail].pathmat[j].weight <= n[root].pathmat[rootp].weight + graph.fstarmatrix[i].weight)
 					{
-						samepath = 1;
+						insert_pos = j+1;
 						break;
 					}
 				}
-				if (samepath)
+				for (int j = n[tail].finite; j > insert_pos ; --j)
 				{
-					continue;
-				}
-				if (kspath::cyclic(temppath,mn))
-				{
-					continue;
-				}
-				P.pathmat.push_back(SPATH());
-				P.pathmat[psize] = temppath;
-				sort(P.pathmat.begin(), P.pathmat.end(),weightsort());
-				int P1size = P1.pathmat.size();
-				int P2size = P2.pathmat.size();
-				for (int i = 0; i < P1size; ++i)
-				{
-					for (int j = 0; j < P2size; ++j)
+					if (j==K)
 					{
-						double connectingweight;
-						int arcindex;
-						if(P1.pathmat[i].end==P2.pathmat[j].end)
+						continue;
+					}
+					n[tail].pathmat[j] = n[tail].pathmat[j-1];
+				}
+				n[tail].pathmat[insert_pos] = n[root].pathmat[rootp];
+				n[tail].pathmat[insert_pos].weight += graph.fstarmatrix[i].weight;
+				n[tail].pathmat[insert_pos].pathlist.push_back(tail);
+				if (n[tail].finite<K)
+				{
+					n[tail].finite+=1;
+				}
+				if (n[tail].position==-1)
+				{
+					heap.push_back(tail);
+					heapsize = heap.size();
+					n[tail].position = heapsize-1;
+				}
+				if (insert_pos==n[tail].permanent)
+				{
+					for (int j = n[tail].position; j > 0; j=(j-1)/2)
+					{
+						int parentkey = n[heap[(j-1)/2]].permanent;
+						int childkey = n[heap[j]].permanent;
+						double parentweight,childweight;
+						if (parentkey<K)
 						{
-							if(P1.pathmat[i].weight+P2.pathmat[j].weight<=boundweight)
-							{	
-								temppath = mergepath(P1.pathmat[i],P2.pathmat[j]);
-								psize = P.pathmat.size();
-								samepath = 0;
-								for (int k = 0; k < psize; ++k)
-								{
-									if (same_path(temppath,P.pathmat[k]))
-									{
-										samepath = 1;
-										break;
-									}
-								}
-								if (samepath)
-								{
-									continue;
-								}
-								if (kspath::cyclic(temppath,mn))
-								{
-									continue;
-								}
-								P.pathmat.push_back(SPATH());
-								P.pathmat[psize] = temppath;
-								sort(P.pathmat.begin(),P.pathmat.end(),weightsort());
-							}
+							parentweight = n[heap[(j-1)/2]].pathmat[parentkey].weight;
 						}
 						else
 						{
-							arcindex = -1;
-							for (int k = graph.fstar[P1.pathmat[i].end]; k < graph.fstar[ P1.pathmat[i].end + 1 ]; ++k)
-							{
-								//if((P1.pathmat[i].end==graph.fstarmatrix[k].head)&&(P2.pathmat[j].end==graph.fstarmatrix[k].tail))
-								if(P2.pathmat[j].end==graph.fstarmatrix[k].tail)
-								{
-									arcindex = k;
-									connectingweight = graph.fstarmatrix[k].weight;
-								}
-							}
-							if (arcindex==-1)
-							{
-								continue;
-							}
-							if (P1.pathmat[i].weight+connectingweight+P2.pathmat[j].weight<=boundweight)
-							{
-								temppath = mergepath(P1.pathmat[i], P2.pathmat[j], connectingweight);
-								psize = P.pathmat.size();
-								samepath = 0;
-								for (int k = 0; k < psize; ++k)
-								{
-									if (same_path(temppath,P.pathmat[k]))
-									{
-										samepath = 1;
-										break;
-									}
-								}
-								if (samepath)
-								{
-									continue;
-								}
-								if (kspath::cyclic(temppath,mn))
-								{
-									continue;
-								}
-								P.pathmat.push_back(SPATH());
-								P.pathmat[psize] = temppath;
-								sort(P.pathmat.begin(), P.pathmat.end(),weightsort());
-							}
+							parentweight = 32767;
+						}
+						if (childkey<K)
+						{
+							childweight = n[heap[j]].pathmat[childkey].weight;
+						}
+						else
+						{
+							childweight = 32767;
+						}
+						if (childweight<parentweight)
+						{
+							swap(heap[j],heap[(j-1)/2]);
+							swap(n[heap[j]].position,n[heap[(j-1)/2]].position);
+						}
+						else
+						{
+							break;
 						}
 					}
 				}
+
 			}
 		}
-		else
+		int curr_root_key_pos = n[root].permanent;
+		
+		if (curr_root_key_pos==K)
 		{
-			break;
+			continue;
 		}
-		double t3 = clock();
-		paths_obtained = P.pathmat.size();
-		if (allarcsvisited)
+		
+		if (n[root].pathmat[curr_root_key_pos].weight<32000)
 		{
-			break;
+			heap.push_back(root);
+			heapsize = heap.size();
+			n[root].position = heapsize-1;
+			for (int i = heapsize-1; i > 0; i=(i-1)/2)
+			{
+				int keyp = n[heap[(i-1)/2]].permanent;
+				int keyc = n[heap[i]].permanent;
+				double pweight,cweight;
+				if (keyp<K)
+				{
+					pweight = n[heap[(i-1)/2]].pathmat[keyp].weight;
+				}
+				else
+				{
+					pweight = 32767;
+				}
+				if (keyc<K)
+				{
+					cweight = n[heap[i]].pathmat[keyc].weight;
+				}
+				else
+				{
+					cweight = 32767;
+				}
+				if (cweight<pweight)
+				{
+					swap(n[heap[i]].position,n[heap[(i-1)/2]].position);
+					swap(heap[i],heap[(i-1)/2]);
+				}
+				else
+				{
+					break;
+				}
+			}
 		}
+		
 	}
-	/*int p1ss = P1.pathmat.size();
-	int p2ss = P2.pathmat.size();
-	cout<<"P1:\n";
-	for (int i = 0; i < p1ss; ++i)
+	for (int i = 0; i < n[Destination].permanent; ++i)
 	{
-		int p1list = P1.pathmat[i].pathlist.size();
-		cout<<"Weight:"<<P1.pathmat[i].weight<<' '<<"PATH:";
-		for (int j = 0; j < p1list; ++j)
-		{
-			cout<<P1.pathmat[i].pathlist[j]<<' ';
-		}
-		cout<<" END:"<<P1.pathmat[i].end<<endl;
+		P.pathmat.push_back(PATH());
+		P.pathmat[i].weight = n[Destination].pathmat[i].weight;
+		P.pathmat[i].pathlist = n[Destination].pathmat[i].pathlist;
 	}
-	cout<<"P2:\n";
-	for (int i = 0; i < p2ss; ++i)
-	{
-		int p2list = P2.pathmat[i].pathlist.size();
-		cout<<"Weight:"<<P2.pathmat[i].weight<<' '<<"PATH:";
-		for (int j = 0; j < p2list; ++j)
-		{
-			cout<<P2.pathmat[i].pathlist[j]<<' ';
-		}
-		cout<<" END:"<<P2.pathmat[i].end<<endl;
-	}*/
-	cout<<"paths_obtained:"<<paths_obtained<<endl;
 	return P;
 }

@@ -14,27 +14,17 @@ struct GRAPH
 	int nodes,arcs;//nodes and arcs
 	vector<ARC> fstarmatrix;
 	vector<ARC> rstarmatrix;
-	int *fstar;
-	int *rstar;
+	//int *fstar;
+	//int *rstar;
+	vector<int> fstar;
+	vector<int> rstar;
 };
 struct YENPATH
 {
 	double weight;
 	vector<int> pathlist;
-	vector<int> arcindex;
-	vector<int> inaccessible;
+	int position;
 	bool found;
-	int end;
-};
-struct SPATH
-{
-	double weight;//To store the weight of the path
-	vector<int> pathlist;//To store the path
-	vector<int> accessible_arcs;//To store the index of all the arcs accessible from the end node
-	int end;//To store the right end node in forward dijkstra and left end node in reverse dijkstra
-	double bestweight;
-	int bestarc;//To store the arc with the best possible weight in future iteration
-	int bestnode;//To store the other node in the arc with the best possible weight in future iteration
 };
 struct forwardstar
 {
@@ -57,51 +47,64 @@ struct cw
 		return (a.weight<b.weight);
 	}	
 };
-struct bestweightsort
-{
-	bool operator()(const SPATH &a, const SPATH &b) const
-	{
-		return (a.bestweight<b.bestweight);
-	}		
-};
-struct weightsort
-{
-	bool operator()(const SPATH &a, const SPATH &b) const
-	{
-		return (a.weight<b.weight);
-	}	
-};
 typedef struct GRAPH GRAPH;
-typedef struct SPATH SPATH;
 typedef struct YENPATH YENPATH;
-typedef struct bestweightsort bestweightsort;
-typedef struct weightsort weightsort;
 typedef struct cw cw;
-typedef struct comparebyweight comparebyweight;
 typedef struct forwardstar forwardstar;
 typedef struct reversestar reversestar;
-struct SPATHMAT
+/*struct HEAPNODE
 {
-	vector<SPATH> pathmat;
+	int nodeid;
+	double keyweight;
+};*/
+struct PATH
+{
+	double weight;
+	vector<int> pathlist;
 };
+typedef struct PATH PATH;
+struct NODE
+{
+	int position;
+	vector<PATH> pathmat;
+	int permanent;
+	int finite;
+};
+typedef struct NODE NODE;
+//typedef struct HEAPNODE HEAPNODE;
 struct YENPATHMAT
 {
 	vector<YENPATH> pathmat;
 };
-typedef struct SPATHMAT SPATHMAT;
+/*struct HEAPNODEVECTOR
+{
+	vector<HEAPNODE> heapelement;
+};*/
+struct PATHMAT
+{
+	vector<PATH> pathmat;
+	long int kn;
+	long int KN;
+	long int km;
+	long int KM;
+};
 typedef struct YENPATHMAT YENPATHMAT;
+//typedef struct HEAPNODEVECTOR HEAPNODEVECTOR;
 #pragma once
 class kspath
 {
 public:
-	bool cyclic(SPATH);
+	bool acyclic(PATH,int);
+	//bool isempty(HEAPNODEVECTOR);
+	//void heapify(HEAPNODEVECTOR &, int, int, vector<NODE> &);
+	//void buildheap(HEAPNODEVECTOR &, int, vector<NODE> &);
+	void heapify(vector<int> &, int, int, vector<YENPATH>&);
+	//void buildheap(vector<YENPATH> &, int, vector<int>&);
+	void heapify(vector<int> &, int, int, vector<NODE>&);
 	bool cyclic(YENPATH);
-	bool cyclic(SPATH , bool *);
-	bool same_path(SPATH, SPATH);
 	bool same_path(YENPATH, YENPATH);
 	YENPATH mergepath(YENPATH, YENPATH);
-	SPATH mergepath(SPATH, SPATH, double);
 	YENPATH sp( GRAPH, int, int);
 	YENPATHMAT yen(GRAPH, int, int, int);
-	SPATHMAT bidijkstra(GRAPH, int , int, int );
+	PATHMAT dijkstra(GRAPH, int , int, int );
 };

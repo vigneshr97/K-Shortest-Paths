@@ -13,434 +13,249 @@
 #include "kspath.h"
 void network::outputdata()
 {
+	ofstream timevalue;
+	ofstream time_n;
+	ofstream time_yen;
+	ofstream time_p;
+	string timefile;
+	time_n.open("time_comparison_k_100.csv");
+	time_yen.open("yen_k_100.csv");
+	time_p.open("proportion_100.csv");
+	//timevalue.open("time.csv");
 	int Origin, Destination, K;
-	cout<<"Enter the Origin: ";
-	cin>>Origin;
-	Origin--;
-	cout<<"Enter the Destination: ";
-	cin>>Destination;
-	Destination--;
-	cout<<"Enter the number of paths required: ";
+	cout<<"Enter the greatest number of paths required"<<endl;
 	cin>>K;
-	srand(time(NULL));
-	double t1 = clock();
-	SPATHMAT pathmatrix = kspath::bidijkstra(graph, Origin, Destination, K);
-	double t2 = clock();
-	int psize = pathmatrix.pathmat.size();
-	for (int i = 0; i < psize; ++i)
+	//Origin = 0; 
+	for (decider = 1; decider <= 22; ++decider)
 	{
-		cout<<"Weight: "<<pathmatrix.pathmat[i].weight<<endl;
-		int pathsize = pathmatrix.pathmat[i].pathlist.size();
-		cout<<"PATH: ";
-		for (int j = 0; j < pathsize-1; ++j)
+		switch(decider)
 		{
-			cout<<pathmatrix.pathmat[i].pathlist[j]<<"-->";
+			case 1:
+			tntp="Networks/Anaheim_flow.tntp";
+			timefile = "Time/time1.csv";
+			break;
+			case 2:
+			tntp="Networks/Austin_net.tntp";
+			timefile = "Time/time2.csv";
+			break;
+			case 3:
+			tntp="Networks/Barcelona_net.tntp";
+			timefile = "Time/time3.csv";
+			break;
+			case 4:
+			tntp="Networks/berlin-center_net.tntp";
+			timefile = "Time/time4.csv";
+			break;
+			case 5:
+			tntp="Networks/friedrichshain-center_net.tntp";
+			timefile = "Time/time5.csv";
+			break;
+			case 6:
+			tntp="Networks/berlin-mitte-center_net.tntp";
+			timefile = "Time/time6.csv";
+			break;
+			case 7:
+			tntp="Networks/berlin-mitte-prenzlauerberg-friedrichshain-center_net.tntp";
+			timefile = "Time/time7.csv";
+			break;
+			case 8:
+			tntp="Networks/berlin-prenzlauerberg-center_net.tntp";
+			timefile = "Time/time8.csv";
+			break;
+			case 9:
+			tntp="Networks/berlin-tiergarten_net.tntp";
+			timefile = "Time/time9.csv";
+			break;
+			case 10:
+			tntp="Networks/Birmingham_Net.tntp";
+			timefile = "Time/time10.csv";
+			break;
+			case 11:
+			tntp="Networks/Braess_net.tntp";
+			timefile = "Time/time11.csv";
+			break;
+			case 12:
+			tntp="Networks/ChicagoSketch_net.tntp";
+			timefile = "Time/time12.csv";
+			break;
+			case 13:
+			tntp="Networks/EMA_net.tntp";
+			timefile = "Time/time13.csv";
+			break;
+			case 14:
+			tntp="Networks/Goldcoast_network_2016_01.tntp";
+			timefile = "Time/time14.csv";
+			break;
+			case 15:
+			tntp="Networks/Hessen-Asym_net.tntp";
+			timefile = "Time/time15.csv";
+			break;
+			case 16:
+			tntp="Networks/Philadelphia_net.tntp";
+			timefile = "Time/time16.csv";
+			break;
+			case 17:
+			tntp="Networks/SiouxFalls_net.tntp";
+			timefile = "Time/time17.csv";
+			break;
+			case 18:
+			tntp="Networks/Sydney_net.tntp";
+			timefile = "Time/time18.csv";
+			break;
+			case 19:
+			tntp="Networks/Terrassa-Asym_net.tntp";
+			timefile = "Time/time19.csv";
+			break;
+			case 20:
+			tntp="Networks/Winnipeg_net.tntp";
+			timefile = "Time/time20.csv";
+			break;
+			case 21:
+			tntp="Networks/Winnipeg-Asym_net.tntp";
+			timefile = "Time/time21.csv";
+			break;
+			case 22:
+			tntp="Networks/ChicagoRegional_net.tntp";
+			timefile = "Time/time22.csv";
+			break;
+			default:
+			cout<<"invalid";
 		}
-		cout<<pathmatrix.pathmat[i].pathlist[pathsize-1];
-		cout<<endl;
-	}
-	cout<<"TIME CONSUMED:"<<(t2 - t1) / CLOCKS_PER_SEC<<endl<<endl<<endl<<endl;
-	double t3 = clock();
-	YENPATHMAT yenpathmatrix = kspath::yen(graph, Origin, Destination, K);
-	double t4 = clock();
-	int ysize = yenpathmatrix.pathmat.size();
-	for (int i = 0; i < ysize; ++i)
-	{
-		cout<<"Weight: "<<yenpathmatrix.pathmat[i].weight<<endl;
-		int pathsize = yenpathmatrix.pathmat[i].pathlist.size();
-		cout<<"PATH: ";
-		for (int j = 0; j < pathsize-1; ++j)
+		cout<<"running "<<tntp<<endl;
+		timevalue.open(timefile);
+		ifstream in(tntp);
+		if(!in) 
 		{
-			cout<<yenpathmatrix.pathmat[i].pathlist[j]<<"-->";
+		  cout << "Cannot open"<<tntp<< "file.\n";
 		}
-		cout<<yenpathmatrix.pathmat[i].pathlist[pathsize-1];
-		cout<<endl;
-	}
-	cout<<"TIME CONSUMED:"<<(t4 - t3) / CLOCKS_PER_SEC<<endl<<endl<<endl<<endl;
-	for (int i = 0; i < ysize; ++i)
-	{
-		cout<<"Bidijkstra Weight: "<<pathmatrix.pathmat[i].weight<<" Yen's Weight: "<<yenpathmatrix.pathmat[i].weight<<endl;
-		int pathsize = pathmatrix.pathmat[i].pathlist.size();
-		cout<<"BPATH: ";
-		for (int j = 0; j < pathsize-1; ++j)
+		in >> dummyc[0]>> dummyc[1]>> dummyc[2] >> dummyf;
+		in >> dummyc[0]>> dummyc[1]>> dummyc[2] >> graph.nodes;
+		in >> dummyc[0]>> dummyc[1]>> dummyc[2] >> dummyf;
+		in >> dummyc[0]>> dummyc[1]>> dummyc[2] >> graph.arcs;
+		//Destination = graph.nodes-1;
+		for(int i=0;i<3;i++)
+			in>>dummyc[i];
+		graph.fstarmatrix = {};
+		graph.fstar = {};
+		for (int i = 0; i <= graph.nodes; ++i)
 		{
-			cout<<pathmatrix.pathmat[i].pathlist[j]<<"-->";
+			graph.fstar.push_back(0);
 		}
-		cout<<pathmatrix.pathmat[i].pathlist[pathsize-1];
-		cout<<endl;
-		pathsize = yenpathmatrix.pathmat[i].pathlist.size();
-		cout<<"YPATH: ";
-		for (int j = 0; j < pathsize-1; ++j)
+		for (int i = 0; i < graph.arcs; i++)
 		{
-			cout<<yenpathmatrix.pathmat[i].pathlist[j]<<"-->";
+			graph.fstarmatrix.push_back(ARC());
+			in>>graph.fstarmatrix[i].head>>graph.fstarmatrix[i].tail>>dummyf>>graph.fstarmatrix[i].weight>>dummyfl[0]>>dummyfl[1]>>dummyfl[2]>>dummyfl[3]>>dummyfl[4]>>dummyfl[5]>>dummyc[1];
+			graph.fstarmatrix[i].head--;
+			graph.fstarmatrix[i].tail--;
 		}
-		cout<<yenpathmatrix.pathmat[i].pathlist[pathsize-1];
-		cout<<endl;
-	}
-	for (int i = ysize; i < psize; ++i)
-	{
-		cout<<"Bidijkstra Weight: "<<pathmatrix.pathmat[i].weight<<endl;
-		int pathsize = pathmatrix.pathmat[i].pathlist.size();
-		cout<<"BPATH: ";
-		for (int j = 0; j < pathsize-1; ++j)
+		sort(graph.fstarmatrix.begin(), graph.fstarmatrix.end(), forwardstar());
+		if (graph.fstarmatrix[0].head!=0)
 		{
-			cout<<pathmatrix.pathmat[i].pathlist[j]<<"-->";
-		}
-		cout<<pathmatrix.pathmat[i].pathlist[pathsize-1];
-		cout<<endl;
-	}
-}
-//The following function reads the graph in a file and converts into a directed graph assuming topographical sorting
-void network::inputdata()
-{
-	int i,j;
-	cout<<"Enter the Network to be tested on (Type the number before the network):"<<endl<<"1: Anaheim\n"<<"2: Austin\n"<<"3: Barcelona\n"<<"4: Berlin-Center\n"<<"5: Berlin-Friedrichshain	\n"<<"6: Berlin-Mitte-Center	\n"<<"7: Berlin-Mitte-Prenzlauerberg-Friedrichshain-Center	\n"<<"8: Berlin-Prenzlauerberg-Center	\n"<<"9: Berlin-Tiergarten	\n"<<"10: Birmingham-England	\n"<<"11: Braess-Example	\n"<<"12: Chicago-Sketch	\n"<<"13: Eastern-Massachusetts	\n"<<"14: GoldCoast\n"<<"15: Hessen-Asymmetric	\n"<<"16: Philadelphia\n"<<"17: SiouxFalls	\n"<<"18: Sydney	\n"<<"19: Terrassa-Asymmetric	\n"<<"20: Winnipeg	\n"<<"21: Winnipeg-Asymmetric	\n"<<"22: chicago-regional\n";
-	cin >> decider;
-	switch(decider)
-	{
-		case 1:
-		tntp="Networks/Anaheim_flow.tntp";
-		break;
-		case 2:
-		tntp="Networks/Austin_net.tntp";
-		break;
-		case 3:
-		tntp="Networks/Barcelona_net.tntp";
-		break;
-		case 4:
-		tntp="Networks/berlin-center_net.tntp";
-		break;
-		case 5:
-		tntp="Networks/friedrichshain-center_net.tntp";
-		break;
-		case 6:
-		tntp="Networks/berlin-mitte-center_net.tntp";
-		break;
-		case 7:
-		tntp="Networks/berlin-mitte-prenzlauerberg-friedrichshain-center_net.tntp";
-		break;
-		case 8:
-		tntp="Networks/berlin-prenzlauerberg-center_net.tntp";
-		break;
-		case 9:
-		tntp="Networks/berlin-tiergarten_net.tntp";
-		break;
-		case 10:
-		tntp="Networks/Birmingham_Net.tntp";
-		break;
-		case 11:
-		tntp="Networks/Braess_net.tntp";
-		break;
-		case 12:
-		tntp="Networks/ChicagoSketch_net.tntp";
-		break;
-		case 13:
-		tntp="Networks/EMA_net.tntp";
-		break;
-		case 14:
-		tntp="Networks/Goldcoast_network_2016_01.tntp";
-		break;
-		case 15:
-		tntp="Networks/Hessen-Asym_net.tntp";
-		break;
-		case 16:
-		tntp="Networks/Philadelphia_net.tntp";
-		break;
-		case 17:
-		tntp="Networks/SiouxFalls_net.tntp";
-		break;
-		case 18:
-		tntp="Networks/Sydney_net.tntp";
-		break;
-		case 19:
-		tntp="Networks/Terrassa-Asym_net.tntp";
-		break;
-		case 20:
-		tntp="Networks/Winnipeg_net.tntp";
-		break;
-		case 21:
-		tntp="Networks/Winnipeg-Asym_net.tntp";
-		break;
-		case 22:
-		tntp="Networks/ChicagoRegional_net.tntp";
-		break;
-		default:
-		cout<<"invalid";
-	}
-	ifstream in(tntp);
-	ofstream outputFile;
-	string filename = "exampleOutput.csv";
-	if(!in) 
-	{
-	  cout << "Cannot open"<<tntp<< "file.\n";
-	}
-	in >> dummyc[0]>> dummyc[1]>> dummyc[2] >> dummyf;
-	in >> dummyc[0]>> dummyc[1]>> dummyc[2] >> graph.nodes;
-	in >> dummyc[0]>> dummyc[1]>> dummyc[2] >> dummyf;
-	in >> dummyc[0]>> dummyc[1]>> dummyc[2] >> graph.arcs;
-	graph.fstar = new int [graph.nodes + 1];
-	graph.rstar = new int [graph.nodes + 1];
-	//for (int i = 0; i <= graph.nodes; ++i)
-	//{
-	//	graph.fstar.push_back(-1);
-	//	graph.rstar.push_back(-1);
-	//}
-	for(i=0;i<3;i++)
-	in>>dummyc[i];
-	cout << "Nodes: "<<graph.nodes<<'\n'<<"Arcs: "<<graph.arcs<<'\n';
-	outputFile.open(filename);
-	outputFile << "A" << "," << "B" <<","<< "Weight" <<endl;
-	for (i = 0; i < graph.arcs; i++)
-	{
-		graph.fstarmatrix.push_back(ARC());
-		graph.rstarmatrix.push_back(ARC());
-		in>>graph.fstarmatrix[i].head>>graph.fstarmatrix[i].tail>>dummyf>>graph.fstarmatrix[i].weight>>dummyfl[0]>>dummyfl[1]>>dummyfl[2]>>dummyfl[3]>>dummyfl[4]>>dummyfl[5]>>dummyc[1];
-		outputFile<<graph.fstarmatrix[i].head<<","<<graph.fstarmatrix[i].tail<<","<<graph.fstarmatrix[i].weight<<endl;
-		graph.fstarmatrix[i].head--;
-		graph.fstarmatrix[i].tail--;
-		graph.rstarmatrix[i].head = graph.fstarmatrix[i].head;
-		graph.rstarmatrix[i].tail = graph.fstarmatrix[i].tail;
-		graph.rstarmatrix[i].weight = graph.fstarmatrix[i].weight;
-	}
-	sort(graph.fstarmatrix.begin(), graph.fstarmatrix.end(), forwardstar());
-	sort(graph.rstarmatrix.begin(), graph.rstarmatrix.end(), reversestar());
-	if (graph.fstarmatrix[0].head!=0)
-	{
-		for (int i = 0; i < graph.fstarmatrix[0].head; ++i)
-		{
-			graph.fstar[i] = 0;
-		}
-	}
-	if (graph.rstarmatrix[0].tail!=0)
-	{
-		for (int i = 0; i < graph.rstarmatrix[0].tail; ++i)
-		{
-			graph.rstar[i] = 0;
-		}
-	}
-	int x = 0;
-	while(x < graph.arcs)
-	{
-		int i;
-		int y = graph.fstarmatrix[x].head;
-		graph.fstar[y] = x;
-		for (i = x; i < graph.arcs; ++i)
-		{
-			if (graph.fstarmatrix[i].head==y)
+			for (int i = 0; i < graph.fstarmatrix[0].head; ++i)
 			{
-				continue;
+				graph.fstar[i] = 0;
 			}
-			else
+		}
+		int x = 0;
+		while(x < graph.arcs)
+		{
+			int i;
+			int y = graph.fstarmatrix[x].head;
+			graph.fstar[y] = x;
+			for (i = x; i < graph.arcs; ++i)
 			{
-				if (graph.fstarmatrix[i].head == y+1)
+				if (graph.fstarmatrix[i].head==y)
 				{
-					x = i;
-					break;
+					continue;
 				}
 				else
 				{
-					for (int j = y+1; j < graph.fstarmatrix[i].head; ++j)
+					if (graph.fstarmatrix[i].head == y+1)
 					{
-						graph.fstar[j] = i;
+						x = i;
+						break;
 					}
-					x = i;
-					break;
-				}
-			}
-		}
-		x = i;
-	}
-	for (int i = graph.fstarmatrix[ graph.arcs - 1 ].head + 1; i <= graph.nodes; ++i)
-	{
-		graph.fstar[i] = graph.arcs;
-	}
-	x = 0;
-	while(x < graph.arcs)
-	{
-		int i;
-		int y = graph.rstarmatrix[x].tail;
-		graph.rstar[y] = x;
-		for (i = x; i < graph.arcs; ++i)
-		{
-			if (graph.rstarmatrix[i].tail==y)
-			{
-				continue;
-			}
-			else
-			{
-				if (graph.rstarmatrix[i].tail == y+1)
-				{
-					x = i;
-					break;
-				}
-				else
-				{
-					for (int j = y+1; j < graph.rstarmatrix[i].tail; ++j)
+					else
 					{
-						graph.rstar[j] = i;
+						for (int j = y+1; j < graph.fstarmatrix[i].head; ++j)
+						{
+							graph.fstar[j] = i;
+						}
+						x = i;
+						break;
 					}
-					x = i;
-					break;
 				}
 			}
+			x = i;
 		}
-		x = i;
-	}
-	for (int i = graph.rstarmatrix[ graph.arcs - 1 ].tail + 1; i <= graph.nodes; ++i)
-	{
-		graph.rstar[i] = graph.arcs;
-	}
-	graph.fstar[graph.nodes] = graph.arcs;
-	graph.rstar[graph.nodes] = graph.arcs;
-	/*cout<<"FSTARMATRIX:"<<endl;
-	for (int i = 0; i < graph.arcs; ++i)
-	{
-		cout<<i<<' '<<graph.fstarmatrix[i].head<<' '<<graph.fstarmatrix[i].tail<<' '<<graph.fstarmatrix[i].weight<<endl;
-	}
-	cout<<"FSTAR:"<<endl;
-	for (int i = 0; i <= graph.nodes; ++i)
-	{
-		cout<<i<<' '<<graph.fstar[i]<<endl;
-	}
-	cout<<"RSTARMATRIX:"<<endl;
-	for (int i = 0; i < graph.arcs; ++i)
-	{
-		cout<<i<<' '<<graph.rstarmatrix[i].head<<' '<<graph.rstarmatrix[i].tail<<' '<<graph.rstarmatrix[i].weight<<endl;
-	}
-	cout<<"RSTAR:"<<endl;
-	for (int i = 0; i <= graph.nodes; ++i)
-	{
-		cout<<i<<' '<<graph.rstar[i]<<endl;
-	}*/
-}
-void network::maninputdata()
-{
-	cout<<"Enter the number of nodes"<<endl;
-	cin>>graph.nodes;
-	cout<<"Enter the number of arcs"<<endl;
-	cin>>graph.arcs;
-	graph.fstar = new int [graph.nodes + 1];
-	graph.rstar = new int [graph.nodes + 1];
-	cout << "Nodes: 1 to "<<graph.nodes<<"\nEnter the arcs (maximum value of weight:32766)\nFormat : origin destination weight\nE.g: 1 2 3 indicates arc from 1 to 2 whose cost is 3\n";
-	for (int i = 0; i < graph.arcs; i++)
-	{
-		graph.fstarmatrix.push_back(ARC());
-		graph.rstarmatrix.push_back(ARC());
-		cin>>graph.fstarmatrix[i].head>>graph.fstarmatrix[i].tail>>graph.fstarmatrix[i].weight;
-		graph.fstarmatrix[i].head--;
-		graph.fstarmatrix[i].tail--;
-		graph.rstarmatrix[i].head = graph.fstarmatrix[i].head;
-		graph.rstarmatrix[i].tail = graph.fstarmatrix[i].tail;
-		graph.rstarmatrix[i].weight = graph.fstarmatrix[i].weight;
-	}
-	sort(graph.fstarmatrix.begin(), graph.fstarmatrix.end(), forwardstar());
-	sort(graph.rstarmatrix.begin(), graph.rstarmatrix.end(), reversestar());
-	if (graph.fstarmatrix[0].head!=0)
-	{
-		for (int i = 0; i < graph.fstarmatrix[0].head; ++i)
+		for (int i = graph.fstarmatrix[ graph.arcs - 1 ].head + 1; i <= graph.nodes; ++i)
 		{
-			graph.fstar[i] = 0;
+			graph.fstar[i] = graph.arcs;
+		}	
+		graph.fstar[graph.nodes] = graph.arcs;
+		srand(time(NULL));
+		vector<int> od1 = {};
+		vector<int> od2 = {};
+		for (int i = 0; i < 5; ++i)
+		{
+			od1.push_back(rand()%graph.nodes);
 		}
-	}
-	if (graph.fstarmatrix[0].tail!=0)
-	{
-		for (int i = 0; i < graph.fstarmatrix[0].tail; ++i)
+		for (int i = 0; i < 5; ++i)
 		{
-			graph.rstar[i] = 0;
-		}
-	}
-	int x = 0;
-	while(x < graph.arcs)
-	{
-		int i;
-		int y = graph.fstarmatrix[x].head;
-		graph.fstar[y] = x;
-		for (i = x; i < graph.arcs; ++i)
-		{
-			if (graph.fstarmatrix[i].head==y)
+			int x = rand()%graph.nodes;
+			while((x==od1[0])||(x==od1[1])||(x==od1[2])||(x==od1[3])||(x==od1[4]))
 			{
-				continue;
+				x = rand()%graph.nodes;
 			}
-			else
+			od2.push_back(x);
+		}
+		for (int i = 1; i <= K; ++i)
+		{
+			double maxtime = 0;
+			int maxpaths = 0;
+			int od_1 = -1;
+			int od_2 = -1;
+			long int kn_max = 0;
+			long int km_max = 0;
+			long int KN_MAX = 0;
+			long int KM_MAX = 0;
+			for (int j = 0; j < 5; ++j)
 			{
-				if (graph.fstarmatrix[i].head == y+1)
+				Origin = od1[j];
+				for (int k = 0; k < 5; ++k)
 				{
-					x = i;
-					break;
-				}
-				else
-				{
-					for (int j = y+1; j < graph.fstarmatrix[i].head; ++j)
+					Destination = od2[k];
+					double t1 = clock();
+					cout<<"running Origin = "<<Origin<<" Destination = "<<Destination<<" K = "<<i<<endl;
+					PATHMAT pathmatrix = kspath::dijkstra(graph,Origin,Destination,i);
+					int paths_obtained = pathmatrix.pathmat.size();
+					double t2 = clock();
+					if ((t2-t1)/CLOCKS_PER_SEC>maxtime)
 					{
-						graph.fstar[j] = i;
+						od_1 = Origin+1;
+						od_2 = Destination+1;
+						maxtime = (t2-t1)/CLOCKS_PER_SEC;
+						maxpaths = pathmatrix.pathmat.size();
+						kn_max = pathmatrix.kn;
+						km_max = pathmatrix.km;
 					}
-					x = i;
-					break;
 				}
+			}
+			KN_MAX = maxpaths*graph.nodes;
+			KM_MAX = maxpaths*graph.arcs;
+			timevalue<<maxpaths<<','<<maxtime<<','<<od_1<<','<<od_2<<endl;
+			if ((i==K)&&(maxpaths!=0))
+			{
+				double knratio = (double)kn_max/(double)KN_MAX;
+				double kmratio = (double)km_max/(double)KM_MAX;
+				time_n<<graph.nodes<<','<<graph.arcs<<','<<maxtime<<endl;
+				time_p<<kn_max<<','<<KN_MAX<<','<<knratio<<','<<km_max<<','<<KM_MAX<<','<<kmratio<<endl;
 			}
 		}
-		x = i;
+		double t3 = clock();
+		YENPATHMAT yenpathmatrix = kspath::yen(graph, Origin, Destination, K);
+		double t4 = clock();
+		time_yen<<graph.nodes<<','<<graph.arcs<<','<<(t4-t3)/CLOCKS_PER_SEC<<endl;
+		timevalue.close();
 	}
-	for (int i = graph.fstarmatrix[ graph.arcs - 1 ].head + 1; i <= graph.nodes; ++i)
-	{
-		graph.fstar[i] = graph.arcs;
-	}
-	x = 0;
-	while(x < graph.arcs)
-	{
-		int i;
-		int y = graph.rstarmatrix[x].tail;
-		graph.rstar[y] = x;
-		for (i = x; i < graph.arcs; ++i)
-		{
-			if (graph.rstarmatrix[i].tail==y)
-			{
-				continue;
-			}
-			else
-			{
-				if (graph.rstarmatrix[i].tail == y+1)
-				{
-					x = i;
-					break;
-				}
-				else
-				{
-					for (int j = y+1; j < graph.rstarmatrix[i].tail; ++j)
-					{
-						graph.rstar[j] = i;
-					}
-					x = i;
-					break;
-				}
-			}
-		}
-		x = i;
-	}
-	for (int i = graph.rstarmatrix[ graph.arcs - 1 ].tail + 1; i <= graph.nodes; ++i)
-	{
-		graph.rstar[i] = graph.arcs;
-	}
-	//graph.fstar[graph.nodes] = graph.arcs;
-	//graph.rstar[graph.nodes] = graph.arcs;
-	/*cout<<"FSTARMATRIX:"<<endl;
-	for (int i = 0; i < graph.arcs; ++i)
-	{
-		cout<<i<<' '<<graph.fstarmatrix[i].head<<' '<<graph.fstarmatrix[i].tail<<' '<<graph.fstarmatrix[i].weight<<endl;
-	}
-	cout<<"FSTAR:"<<endl;
-	for (int i = 0; i <= graph.nodes; ++i)
-	{
-		cout<<i<<' '<<graph.fstar[i]<<endl;
-	}
-	cout<<"RSTARMATRIX:"<<endl;
-	for (int i = 0; i < graph.arcs; ++i)
-	{
-		cout<<i<<' '<<graph.rstarmatrix[i].head<<' '<<graph.rstarmatrix[i].tail<<' '<<graph.rstarmatrix[i].weight<<endl;
-	}
-	cout<<"RSTAR:"<<endl;
-	for (int i = 0; i <= graph.nodes; ++i)
-	{
-		cout<<i<<' '<<graph.rstar[i]<<endl;
-	}*/
 }
