@@ -1,3 +1,7 @@
+# K Shortest Paths
+
+Abstract
+
 The problem of finding the best K elementary paths in a network is studied here. Shortest path
 problem is one of the most widely studied classic network optimization problems. It started with
 the most basic problem of finding the shortest path between an OD pair in a given network with
@@ -17,3 +21,5 @@ algorithm is run in both the directions to find the paths faster. A better pract
 observed when tested in various real world networks and square grid networks after the second
 set of optimizations. Finally the practical relevance of large values of K is explained through the
 NP hard multiobjective optimization problem.
+
+The one directional version of the code is available in the directory 'code' and the bidirectional version is available in the directory 'bi-direction k shortest paths algorithms'
