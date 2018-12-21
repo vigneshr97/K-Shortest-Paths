@@ -6,7 +6,7 @@ class network : public kspath
 {
 public:
 	GRAPH graph, subgraph;
-	int Origin, Destination, K;
+	int Origin, Destination, K, mod;
 	char dummyc[3][20];
 	float dummyf;
 	double capacity, length, freeflowtime, B, power, speedlimit, toll, linktype, traveltime;
@@ -15,9 +15,10 @@ public:
 	bool reduced;
 	vector<int> new_node;
 	vector<int> old_node;
+	void randomized_grid_net(int);
 	void grid_net(int);
 	void input_data();
 	void man_input_data();
-	GRAPH reduce_graph(GRAPH&, int, int, int, vector<int> &, vector<int> &);
 	void output_data();
+	void output_time_data();
 };

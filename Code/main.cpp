@@ -7,16 +7,46 @@ int main()
 {
 	int k,n;
 	network net;
-	cout<<"enter the number of nodes required on one side"<<endl;
-	cin>>n;
-	net.grid_net(n);
-	//net.man_input_data();
-	//net.input_data();
-	net.output_data();
+	int decider;
+	cout<<"enter the network to test on \n1:randomised grid network \n2:unrandomised grid network \n3:To choose a sample network \n4:To manually feed a network"<<endl;
+	cin>>decider;
+	switch(decider)
+	{
+		case 1:
+		cout<<"enter the number of nodes required on one side"<<endl;
+		cin>>n;
+		net.randomized_grid_net(n);
+		break;
+		case 2:
+		cout<<"enter the number of nodes required on one side"<<endl;
+		cin>>n;
+		net.grid_net(n);
+		break;
+		case 3:
+		net.input_data();
+		break;
+		case 4:
+		net.man_input_data();
+		break;
+		default:
+		cout<<"enter 1,2,3 or 4"<<endl;
+	}
+	cout<<"enter 1 to execute the path verification of the algorithms and 0 to not execute"<<endl;
+	cin>>decider;
+	if (decider)
+	{
+		net.output_data();
+	}
+	cout<<"enter 1 to execute the computational time experiments for the algorithms and 0 to not execute"<<endl;
+	cin>>decider;
+	if (decider)
+	{
+		net.output_time_data();
+	}
 	return 0;
 }
 
-/*give the following input by rewriting net.inputdata(); to net.maninputdata();
+/*
 #1
 Nodes:22 Arcs:38
 1 2 12
